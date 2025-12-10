@@ -1,4 +1,6 @@
-# TerminalGui.Extensions
+﻿# TerminalGui.Extensions
+
+# WORK IN PROGRESS
 
 ## Table of contents
 *For more in depth documentation refer to the SourceCode listed under every TOC header*</br>
@@ -63,12 +65,12 @@ wrapper for `view.Accepting += (_, args) => ...`
 view.OnAccepting(args => ...);
 ```
 
-**OnSelecting(...)**
+**OnActivating(...)**
 
-wrapper for `view.Selecting += (_, args) => ...`
+wrapper for `view.Activating += (_, args) => ...`
 
 ```csharp
-view.OnSelecting(args => ...);
+view.OnActivating(args => ...);
 ```
 
 **OnHandlingHotKey(...)**
@@ -200,6 +202,13 @@ CheckBox radioButton = viewBuilder.AddRadioButton(
     checkedState: CheckState.Checked, 
     allowCheckedStateNone: false, 
     hotKeySpecifier: null);
+```
+
+**AddLabel(...)**
+
+```csharp
+Label label = viewBuilder.AddLabel(new Label());
+Label label = viewBuilder.AddLabel("Text", hotKeySpecifier: null);
 ```
 
 ### MessageBox Extensions
