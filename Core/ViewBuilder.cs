@@ -1,11 +1,12 @@
-﻿using System.Text;
+﻿using System.Reflection.PortableExecutable;
+using System.Text;
 
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 
 namespace TerminalGui.Extensions.Core;
 
-public class ViewBuilder(View parent)
+public class ViewBuilder<TParent>(TParent parent) where TParent : View
 {
     private View? _lastChildAdded;
 
@@ -15,7 +16,8 @@ public class ViewBuilder(View parent)
     ///     Takes the last added child as input and returns the Y position to use for the new child,
     ///     or <see langword="null" /> to skip auto-positioning.
     ///     <br></br>
-    ///     By default this is  <see cref="Pos.Bottom" />, which ensures that each new child is placed directly below the last added child.
+    ///     By default this is  <see cref="Pos.Bottom" />, which ensures that each new child is placed directly below the last
+    ///     added child.
     /// </summary>
     public Func<View, Pos?>? NextPosY {
         get;
@@ -23,12 +25,19 @@ public class ViewBuilder(View parent)
     } = Pos.Bottom;
 
     /// <summary>
-    ///     Does the exact same as <see cref="NextPosY"/>, but for the X position. By default no auto-positioning is applied for X.
+    ///     Does the exact same as <see cref="NextPosY" />, but for the X position. By default no auto-positioning is applied
+    ///     for X.
     /// </summary>
     public Func<View, Pos?>? NextPosX {
         get;
         set;
     } = null;
+
+    /// <summary>
+    /// Returns the parent <see cref="View" /> associated with the current instance.
+    /// </summary>
+    /// <returns>The parent <see cref="View" /> of type <typeparamref name="TParent"/></returns>
+    public TParent GetView() => parent;
 
     /// <summary>
     ///     Gets the most recently added view for this view builder instance.
@@ -40,13 +49,28 @@ public class ViewBuilder(View parent)
     public View? GetLastChildAdded() => _lastChildAdded;
 
     /// <summary>
-    ///     Adds a <see cref="View" /> of type <typeparamref name="T" /> to the parent view.
+    ///    Adds a <see cref="View" /> of type <typeparamref name="T" /> to the parent view of the current instance,
+    ///    retrieving it from the view provided by the given <see cref="ViewBuilder{T}" />.
     /// </summary>
-    /// <typeparam name="T">The type of <see cref="View" /> being added.</typeparam>
-    /// <param name="child">The <see cref="View" /> being added.</param>
-    /// <param name="configureBeforeAdd">An optional callback to apply configuration to the child before it is added to the parent viwe.</param>
+    /// <param name="viewBuilder">The <see cref="ViewBuilder{T}"/> to retrieve the view from</param>
     /// <returns>The newly added <see cref="View" /> instance of type <typeparamref name="T" />.</returns>
-    public T Add<T>(T child, Action<T>? configureBeforeAdd = null) where T : View
+    public TChild Add<TChild>(ViewBuilder<TChild> viewBuilder, Action<TChild>? configureBeforeAdd = null) where TChild : View
+    {
+        TChild child = viewBuilder.GetView();
+        return Add<TChild>(child, configureBeforeAdd);
+    }
+
+    /// <summary>
+    ///     Adds a <see cref="View" /> of type <typeparamref name="TChild" /> to the parent view.
+    /// </summary>
+    /// <typeparam name="TChild">The type of <see cref="View" /> being added.</typeparam>
+    /// <param name="child">The <see cref="View" /> being added.</param>
+    /// <param name="configureBeforeAdd">
+    ///     An optional callback to apply configuration to the child before it is added to the
+    ///     parent viwe.
+    /// </param>
+    /// <returns>The newly added <see cref="View" /> instance of type <typeparamref name="TChild" />.</returns>
+    public TChild Add<TChild>(TChild child, Action<TChild>? configureBeforeAdd = null) where TChild : View
     {
         if (_lastChildAdded is not null && parent.SubViews.Contains(_lastChildAdded))
         {
@@ -327,10 +351,32 @@ public class ViewBuilder(View parent)
 
     #endregion
 
+    #region Menu
+
+    public Menu AddMenu(Menu menu) => Add(menu);
+    public Menu AddMenu() => throw new NotImplementedException();
+    
+    public MenuItem AddMenuItem(MenuItem menuItem) => Add(menuItem);
+    public MenuItem AddMenuItem() => throw new NotImplementedException();
+
+    public PopoverMenu AddPopoverMenu(PopoverMenu popoverMenu) => Add(popoverMenu);
+    public PopoverMenu AddPopoverMenu() => throw new NotImplementedException();
+    #endregion
+    
+    #region Menu Bar
+
+    public MenuBar AddMenuBar(MenuBar menuBar) => Add(menuBar);
+    public MenuBar AddMenuBar() => throw new NotImplementedException();
+
+    public MenuBarItem AddMenuBarItem(MenuBarItem menuBarItem) => Add(menuBarItem);
+    public MenuBarItem AddMenuBarItem() => throw new NotImplementedException();
+
+    #endregion
+
     #region NumericUpDown
 
-    public NumericUpDown<T> AddNumericUpDown<T>(NumericUpDown<T> numericUpDown) where T : notnull => Add(numericUpDown);
-    public NumericUpDown<T> AddNumericUpDown<T>() where T : notnull => throw new NotImplementedException();
+    public NumericUpDown<TNumericType> AddNumericUpDown<TNumericType>(NumericUpDown<TNumericType> numericUpDown) where TNumericType : notnull => Add(numericUpDown);
+    public NumericUpDown<TNumericType> AddNumericUpDown<TNumericType>() where TNumericType : notnull => throw new NotImplementedException();
 
     #endregion
 
@@ -417,8 +463,6 @@ public class ViewBuilder(View parent)
     // todo https://github.com/gui-cs/Terminal.Gui/tree/v2_develop/Terminal.Gui/Views/TabView
 
     // todo https://github.com/gui-cs/Terminal.Gui/tree/v2_develop/Terminal.Gui/Views/Selectors
-
-    // todo https://github.com/gui-cs/Terminal.Gui/tree/v2_develop/Terminal.Gui/Views/Menu
 
     // todo https://github.com/gui-cs/Terminal.Gui/tree/v2_develop/Terminal.Gui/Views/Color
 

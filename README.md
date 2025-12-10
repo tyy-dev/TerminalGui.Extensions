@@ -19,7 +19,7 @@
 **Builder()**
 
 ```csharp
-ViewBuilder builder = view.Builder();
+ViewBuilder<Window> builder = view.Builder();
 builder.AddButton("Button Text");
 ```
 
@@ -138,7 +138,15 @@ Button? button = viewBuilder.GetLastChildAdded() as Button;
 **Add(...)**
 
 ```csharp
-Button button = viewBuilder.Add<Button>(new(), btn => btn.Text = "Click me");
+Button button = viewBuilder.Add(new Button(), btn => btn.Text = "Click me");
+
+// You're also able to directly add ViewBuilder's
+ViewBuilder<MainWindow> windowBuilder = this.Builder();
+
+ViewBuilder<Menu> menuBuilder = new Menu().Builder();
+Label label = menuBuilder.AddLabel("Menu 1");
+
+Menu menu = windowBuilder.Add(menuBuilder);
 ```
 
 **AddBar(...)**
@@ -207,7 +215,7 @@ CheckBox radioButton = viewBuilder.AddRadioButton(
 **AddLabel(...)**
 
 ```csharp
-Label label = viewBuilder.AddLabel(new Label());
+Label label = viewBuilder.AddLabel(new());
 Label label = viewBuilder.AddLabel("Text", hotKeySpecifier: null);
 ```
 

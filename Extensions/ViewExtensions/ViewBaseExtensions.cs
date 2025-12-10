@@ -1,28 +1,28 @@
 ﻿using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
+
 using TerminalGui.Extensions.Core;
 
 namespace TerminalGui.Extensions.Extensions.ViewExtensions;
 
 public static class ViewBaseExtensions
 {
-    extension(View view)
+    extension<T>(T view) where T : View
     {
-        #region ViewBuilder
+        public ViewBuilder<T> Builder() => new(view);
 
-        public ViewBuilder Builder() => new(view);
-
-        public ViewBuilder ConfigureWithBuilder(Action<ViewBuilder> callback)
+        public ViewBuilder<T> ConfigureWithBuilder(Action<ViewBuilder<T>> callback)
         {
-            ViewBuilder viewbuilder = view.Builder();
+            ViewBuilder<T> viewbuilder = view.Builder();
             callback.Invoke(viewbuilder);
             return viewbuilder;
         }
+    }
 
-        #endregion
-
+    extension(View view)
+    {
         #region Layout
-        
+
         public View WithLayout(
             Dim? width = null,
             Dim? height = null,
