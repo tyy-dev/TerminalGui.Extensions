@@ -8,6 +8,7 @@
   - [View Extensions](#view-extensions)
     - [CheckBox Extensions](#checkbox-extensions)
   - [ViewBuilder](#viewbuilder)
+    - [MessageBox Extensions](#messagebox-extensions)
 <!--/TOC-->
 
 ## View Extensions
@@ -199,4 +200,33 @@ CheckBox radioButton = viewBuilder.AddRadioButton(
     checkedState: CheckState.Checked, 
     allowCheckedStateNone: false, 
     hotKeySpecifier: null);
+```
+
+### MessageBox Extensions
+[MessageBoxExtensions.cs](/Extensions/ViewExtensions/MessageBoxExtensions.cs)
+
+**MessageBox.Confirm(...)**
+```csharp
+bool confirmed = MessageBox.Confirm(App, "Are you sure?");
+bool confirmed2 = MessageBox.Confirm(App,
+    message: "Proceed?",
+    yesText: "Confirm",
+    noText: "Cancel");
+```
+
+**MessageBox.Error(...)**
+```csharp
+MessageBox.Error(App, "Something went wrong.");
+MessageBox.Error(App,
+    message: "Something went wrong.",
+    title: "Error",
+    okText: "Close");
+```
+
+**MessageBox.Info(...)**
+```csharp
+MessageBox.Info(App, "Done.");
+MessageBox.Info(App,
+    message: "Saved."
+    okText: "Proceed");
 ```
