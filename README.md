@@ -8,7 +8,7 @@
 <!--/TOC-->
 
 ## View Extensions
-[ViewBaseExtensions.cs](.\Extensions\ViewExtensions\ViewBaseExtensions.cs)
+[ViewBaseExtensions.cs](/Extensions/ViewExtensions/ViewBaseExtensions.cs)
 
 **Builder()**
 
@@ -28,7 +28,7 @@ view.ConfigureWithBuilder((ViewBuilder viewBuilder) =>
 ```
 
 ### CheckBox Extensions
-[CheckBoxExtensions.cs](.\Extensions\ViewExtensions\CheckBoxExtensions.cs)
+[CheckBoxExtensions.cs](/Extensions/ViewExtensions/CheckBoxExtensions.cs)
 
 **CheckedStateChanged(Action<EventArgs<CheckState>> callback)**
 
