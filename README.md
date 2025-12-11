@@ -10,7 +10,6 @@
   - [View Extensions](#view-extensions)
     - [CheckBox Extensions](#checkbox-extensions)
   - [ViewBuilder](#viewbuilder)
-    - [Notes](#notes)
   - [MessageBox Extensions](#messagebox-extensions)
   - [ApplicationNavigationExtensions](#applicationnavigationextensions)
 <!--/TOC-->
@@ -341,4 +340,5 @@ wrapper for `view.FocusedChanged += (_, args) => ...`
 
 ```csharp
 view.OnFocusChanged(args => ...);
+
 ```
