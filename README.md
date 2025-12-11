@@ -1,4 +1,4 @@
-﻿# TerminalGui.Extensions
+# TerminalGui.Extensions
 
 # WORK IN PROGRESS
 
@@ -10,7 +10,9 @@
   - [View Extensions](#view-extensions)
     - [CheckBox Extensions](#checkbox-extensions)
   - [ViewBuilder](#viewbuilder)
+    - [Notes](#notes)
     - [MessageBox Extensions](#messagebox-extensions)
+    - [ApplicationNavigationExtensions](#applicationnavigationextensions)
 <!--/TOC-->
 
 ## View Extensions
@@ -258,7 +260,7 @@ MessageBox.Info(App,
     okText: "Proceed");
 ```
 
-### ApplicationNavigationExtensions.cs
+### ApplicationNavigationExtensions
 [ApplicationNavigationExtensions.cs](/Extensions/ApplicationNavigationExtensions.cs)
 
 **NavigatesTo(...)**
