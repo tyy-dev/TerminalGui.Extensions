@@ -129,6 +129,11 @@ By default this is Pos.Bottom, which ensures that each new child is placed direc
 
 Does the exact same as NextPosY, but for the X position. By default no auto-positioning is applied for X.
 
+**SkipAutoPositioning**
+
+If true, skips any auto-positioning logic for any future added childam, unless it is set to false again.
+It is suggested to set this property when using view.WithLayout if you do not want auto-positioning to interfere with the layouting.
+
 **GetLastChildAdded()**
 
 ```csharp
@@ -251,4 +256,60 @@ MessageBox.Info(App, "Done.");
 MessageBox.Info(App,
     message: "Saved."
     okText: "Proceed");
+```
+
+### ApplicationNavigationExtensions.cs
+[ApplicationNavigationExtensions.cs](/Extensions/ApplicationNavigationExtensions.cs)
+
+**NavigatesTo(...)**
+Sets the targetView's Accepting handler to navigate to the given runnable accepting.
+
+```csharp
+ViewBuilder<MainWindow> windowBuilder = this.Builder();
+windowBuilder.AddButton(out Button settingsBtn, "Go to settings Menu");
+
+Window settings = new();
+settings.Builder()
+    .AddButton(out Button backButton, "Back to Main Menu");
+
+backButton.OnActivating(_ => App.RequestStop());
+app.Navigation.NavigatesTo<Window>(targetView: settingsBtn, runnableTo: settings, closeCurrent: false);
+
+
+// app.Navigation.NavigatesTo<SettingsMenu>(targetView: settingsBtn, closeCurrent: false);
+// See small full example below
+```
+<details>
+<summary>Small Full Example</summary>
+```
+public class SettingsMenu : Window
+{
+    public SettingsMenu()
+    {
+        this.Builder()
+            .AddButton(out Button backButton, "Back to Main Menu");
+        backButton.OnActivating(_ => App.RequestStop());
+    }
+}
+public class MainWindow : Window
+{
+    public MainWindow(IApplication app)
+    {
+        ViewBuilder<MainWindow> windowBuilder = this.Builder();
+        windowBuilder.AddButton(out Button settingsBtn, "Go to settings Menu");
+
+        app.Navigation.NavigatesTo<SettingsMenu>(targetView: settingsBtn, closeCurrent: false);
+    }
+}
+using IApplication app = Application.Create().Init();
+app.Run(new MainWindow(app));
+```
+</details>
+
+**OnFocusChanged(...)**
+
+wrapper for `view.FocusedChanged += (_, args) => ...`
+
+```csharp
+view.OnFocusChanged(args => ...);
 ```

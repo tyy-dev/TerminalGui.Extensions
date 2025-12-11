@@ -1,5 +1,5 @@
 ﻿using System.Text;
-
+using Terminal.Gui.Drawing;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 
@@ -33,6 +33,15 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     } = null;
 
     /// <summary>
+    /// If <see langword="true"/>, skips any auto-positioning logic for any future added childam, unless it is set to <see langword="fale"/> again.
+    /// It is suggested to set this property when using view.WithLayout if you do not want auto-positioning to interfere with the layouting.
+    /// </summary>
+    public bool SkipAutoPositioning {
+        get;
+        set;
+    } = false;
+
+    /// <summary>
     ///     Returns the parent <see cref="View" /> associated with the current instance.
     /// </summary>
     /// <returns>The parent <see cref="View" /> of type <typeparamref name="TParent" /></returns>
@@ -54,7 +63,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     /// <param name="viewBuilder">The <see cref="ViewBuilder{TChild}" /> to retrieve the view from</param>
     /// <param name="child">The newly added child view</param>
     /// <param name="configureBeforeAdd">Optional configuration callback before adding</param>
-    /// <returns>The fluent <see cref="ViewBuilder{TParent}" /></returns>
+    /// <returns><see cref="ViewBuilder{TParent}" /></returns>
     public ViewBuilder<TParent> Add<TChild>(ViewBuilder<TChild> viewBuilder, out TChild child, Action<TChild>? configureBeforeAdd = null)
         where TChild : View
     {
@@ -75,8 +84,9 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     public ViewBuilder<TParent> Add<TChild>(out TChild addedChild, TChild child, Action<TChild>? configureBeforeAdd = null)
         where TChild : View
     {
-        if (_lastChildAdded is not null && parent.SubViews.Contains(_lastChildAdded))
+        if (!SkipAutoPositioning && _lastChildAdded is not null && parent.SubViews.Contains(_lastChildAdded))
         {
+   
             if (NextPosY?.Invoke(_lastChildAdded) is { } yPos)
             {
                 child.Y = yPos;
@@ -86,6 +96,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
             {
                 child.X = xPos;
             }
+            
         }
 
         configureBeforeAdd?.Invoke(child);
@@ -106,7 +117,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     public ViewBuilder<TParent> AddBar(Bar bar) => Add(out _, bar);
 
     /// <inheritdoc cref="AddBar(Bar)" path="/summary" />
-    /// <param name="bar">
+    /// <param name="barOut">
     ///     <inheritdoc cref="AddBar(Bar)" path="/returns" />
     /// </param>
     /// <param name="shortcuts"></param>
@@ -117,12 +128,12 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     <inheritdoc cref="Bar.Orientation" path="/summary" />
     /// </param>
     /// <returns>The<see cref="ViewBuilder{TParent}" /> with <inheritdoc cref="AddBar(Bar)" path="/returns" /></returns>
-    public ViewBuilder<TParent> AddBar(out Bar bar, IEnumerable<View>? shortcuts = null, AlignmentModes? alignmentMode = null, Orientation? orientation = null) => Add(
-        out bar,
+    public ViewBuilder<TParent> AddBar(out Bar barOut, IEnumerable<View>? shortcuts = null, AlignmentModes? alignmentMode = null, Orientation? orientation = null) => Add(
+        out barOut,
         new(),
-        btn => {
-            btn.AlignmentModes = alignmentMode ?? btn.AlignmentModes;
-            btn.Orientation = orientation ?? btn.Orientation;
+        bar => {
+            bar.AlignmentModes = alignmentMode ?? bar.AlignmentModes;
+            bar.Orientation = orientation ?? bar.Orientation;
         }
     );
 
@@ -220,7 +231,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         AddCheckable(out checkBox, text, checkedState, allowCheckedStateNone, hotKeySpecifier: hotKeySpecifier);
 
     /// <summary>
-    ///     Adds a <see cref="CheckBox" /> with radio style set to true to the parent view.
+    ///     Adds a <see cref="CheckBox" /> with radio style set to <see langword="true" /> to the parent view.
     /// </summary>
     /// <param name="checkBox">
     ///     <inheritdoc cref="AddCheckBox(CheckBox)" path="/returns" />
@@ -389,9 +400,34 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
 
     #region Line
 
+    /// <summary>
+    ///     Adds a <see cref="Line" /> to the parent view.
+    /// </summary>
+    /// <returns>The newly added <see cref="Line" /> instance.</returns>
     public ViewBuilder<TParent> AddLine(Line line) => Add(out _, line);
 
-    public ViewBuilder<TParent> AddLine() => throw new NotImplementedException();
+    /// <inheritdoc cref="AddLine(Line)" path="/summary" />
+    /// <param name="lineOut">
+    ///     <inheritdoc cref="AddLine(Line)" path="/returns" />
+    /// </param>
+    /// <param name="length">
+    ///     <inheritdoc cref="Line.Length" path="/summary" />
+    /// </param>
+    /// <param name="orientation">
+    ///     <inheritdoc cref="Line.Length" path="/summary" />
+    /// </param>
+    /// <param name="lineStyle">
+    ///     <inheritdoc cref="Line.Length" path="/summary" />
+    /// </param>
+    /// <returns>The<see cref="ViewBuilder{TParent}" /> with <inheritdoc cref="AddLine(Line)" path="/returns" /></returns>
+    public ViewBuilder<TParent> AddLine(out Line lineOut, Dim? length = null, Orientation? orientation = null, LineStyle? lineStyle = null) => Add(
+        out lineOut,
+        new(),
+        line => {
+            line.Length = length ?? line.Length;
+            line.Orientation = orientation ?? line.Orientation;
+            line.Style = lineStyle ?? line.Style;
+        });
 
     #endregion
 
