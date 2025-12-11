@@ -20,7 +20,7 @@
 
 ```csharp
 ViewBuilder<Window> builder = view.Builder();
-builder.AddButton("Button Text");
+builder.AddButton(out _, "Button Text");
 ```
 
 **ConfigureWithBuilder(...)**
@@ -28,7 +28,7 @@ builder.AddButton("Button Text");
 ```csharp
 view.ConfigureWithBuilder(viewBuilder => 
 {
-    viewBuilder.AddButton("Button Text");
+    viewBuilder.AddButton(out _, "Button Text");
 });
 
 ```
@@ -112,7 +112,8 @@ checkbox.OnCheckedStateChanging(args => ...);
 
 ### Notes
 
-+ All `Add` methods return the added view. 
++ All `Add` methods return the ViewBuilder instance for fluent chaining.
++ All `Add` methods return which aren't AddX(X instance) return the added view through an the first out parameter. 
 + Parameters with `null` defaults retain their classes's initialization values.
 Except for the `Text` parameter which default to `"{typeName} {parent.SubViews.Count}"` (e.g., `"Button 3"`) if not provided.
 
@@ -131,30 +132,31 @@ Does the exact same as NextPosY, but for the X position. By default no auto-posi
 **GetLastChildAdded()**
 
 ```csharp
-viewBuilder.AddButton("a button");
-Button? button = viewBuilder.GetLastChildAdded() as Button;
+viewBuilder.AddButton(out _, "a button");
+Button? button = viewBuilder.GetLastChildAdded() as Button; // also in this case equal to AddButton(out Button button, ...);
 ```
 
 **Add(...)**
 
 ```csharp
-Button button = viewBuilder.Add(new Button(), btn => btn.Text = "Click me");
+windowBuilder.Add(out Button button, new(), btn => btn.Text = "Click me"); // => ViewBuilder<Window>
 
 // You're also able to directly add ViewBuilder's
-ViewBuilder<MainWindow> windowBuilder = this.Builder();
+ViewBuilder<Window> windowBuilder = this.Builder();
 
 ViewBuilder<Menu> menuBuilder = new Menu().Builder();
-Label label = menuBuilder.AddLabel("Menu 1");
+menuBuilder.AddLabel(out Label label, "Menu 1"); // => ViewBuilder<Menu>
 
-Menu menu = windowBuilder.Add(menuBuilder);
+windowBuilder.Add(menuBuilder, out Menu Menu); // => ViewBuilder<Window>
 ```
 
 **AddBar(...)**
 
 ```csharp
-Bar bar = viewBuilder.AddBar(new());
+viewBuilder.AddBar(new()); // => ViewBuilder<Window>
 
-Bar bar2 = viewBuilder.AddBar(
+viewBuilder.AddBar(
+    out Bar bar,
     shortcuts: [
         new Shortcut
         {
@@ -162,40 +164,42 @@ Bar bar2 = viewBuilder.AddBar(
         }
     ],
     alignmentMode: AlignmentModes.EndToStart,
-    orientation: Orientation.Vertical);
+    orientation: Orientation.Vertical); // => ViewBuilder<Window>
 ```
 
 **AddButton(...)**
 
 ```csharp
-Button button = viewBuilder.AddButton(
+viewBuilder.AddButton(
     new()
     {
         Text = "Button 1"
-    });
+    }); // => ViewBuilder<Window>
 
-Button button2 = viewBuilder.AddButton(
+viewBuilder.AddButton(
+    out Button button,
     text: "Button 2",
     isDefault: false,
     noDecorations: false,
     noPadding: false,
-    hotKeySpecifier: new(';'))
+    hotKeySpecifier: new(';')) / => ViewBuilder<Window>
 ```
 
 **AddCheckBox(...)**
 
 ```csharp
-CheckBox checkBox = viewBuilder.AddCheckBox(
-            new()
-            {
-                Text = "Checkbox 1"
-            });
+viewBuilder.AddCheckBox(
+    new()
+    {
+        Text = "Checkbox 1"
+    }); // => ViewBuilder<Window>
 
-CheckBox checkBox2 = viewBuilder.AddCheckBox(
+viewBuilder.AddCheckBox(
+    out CheckBox checkBox,
     text: "Checkbox 2",
     checkedState: CheckState.Checked,
     allowCheckedStateNone: false, 
-    hotKeySpecifier: null);
+    hotKeySpecifier: null); // => ViewBuilder<Window>
 ```
 
 **AddRadioButton(...)**
@@ -205,18 +209,19 @@ The same as AddCheckBox but with [RadioStyle](https://gui-cs.github.io/Terminal.
 Furthermore the `Text` parameter will default to `"RadioButton {parent.SubViews.Count}"` if not provided.
 
 ```csharp
-CheckBox radioButton = viewBuilder.AddRadioButton(
+viewBuilder.AddRadioButton(
+    out CheckBox radioButton,
     text: null, 
     checkedState: CheckState.Checked, 
     allowCheckedStateNone: false, 
-    hotKeySpecifier: null);
+    hotKeySpecifier: null); // => ViewBuilder<Window>
 ```
 
 **AddLabel(...)**
 
 ```csharp
-Label label = viewBuilder.AddLabel(new());
-Label label = viewBuilder.AddLabel("Text", hotKeySpecifier: null);
+viewBuilder.AddLabel(new()); // => ViewBuilder<Window>
+viewBuilder.AddLabel(out Label label, "Text", hotKeySpecifier: null); // => ViewBuilder<Window>
 ```
 
 ### MessageBox Extensions
