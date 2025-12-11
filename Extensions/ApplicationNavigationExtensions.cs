@@ -18,6 +18,15 @@ public static class ApplicationNavigationExtensions
 
         #region Navigation
 
+        /// <inheritdoc cref="NavigatesTo{TRunnableTo}(ApplicationNavigation, View, TRunnableTo, bool)"
+        ///     path="/param[@name='targetView']" />
+        /// <param name="runnableToFactory">An factory returning the runnable instance to navigate to.</param>
+        public View NavigatesTo<TRunnableTo>(View targetView, Func<TRunnableTo> runnableToFactory, bool closeCurrent = false)
+            where TRunnableTo : Runnable => navigation.SetupNavigation(
+            targetView,
+            closeCurrent,
+            () => navigation.App?.Run(runnableToFactory())); // Invoke factory each time
+
         /// <param name="targetView">The runnable instance whose Accepting event will trigger navigation to the new runnable.</param>
         /// <param name="runnableTo">The runnable instance to navigate to.</param>
         public View NavigatesTo<TRunnableTo>(View targetView, TRunnableTo runnableTo, bool closeCurrent = false)
@@ -29,7 +38,7 @@ public static class ApplicationNavigationExtensions
             where TRunnableTo : Runnable, new() => navigation.SetupNavigation(targetView, closeCurrent, () => navigation.App?.Run<TRunnableTo>());
 
         /// <inheritdoc cref="NavigatesTo{TRunnableTo}(ApplicationNavigation, View, TRunnableTo, bool)"
-        ///     path="/param[@name='viewFrom']" />
+        ///     path="/param[@name='targetView']" />
         internal View SetupNavigation(View targetView, bool closeCurrent, Action runAction)
         {
             ArgumentNullException.ThrowIfNull(navigation.App, nameof(navigation.App));

@@ -1,4 +1,4 @@
-# TerminalGui.Extensions
+﻿# TerminalGui.Extensions
 
 # WORK IN PROGRESS
 
@@ -11,8 +11,8 @@
     - [CheckBox Extensions](#checkbox-extensions)
   - [ViewBuilder](#viewbuilder)
     - [Notes](#notes)
-    - [MessageBox Extensions](#messagebox-extensions)
-    - [ApplicationNavigationExtensions](#applicationnavigationextensions)
+  - [MessageBox Extensions](#messagebox-extensions)
+  - [ApplicationNavigationExtensions](#applicationnavigationextensions)
 <!--/TOC-->
 
 ## View Extensions
@@ -93,6 +93,11 @@ view.OnCommandNotBound(args => ...);
 
 ### CheckBox Extensions
 [CheckBoxExtensions.cs](/Extensions/ViewExtensions/CheckBoxExtensions.cs)
+
+**IsChecked**
+```csharp
+bool isChecked = checkbox.IsChecked; // Equal to checkbox.CheckedState == CheckState.Checked;
+```
 
 **OnCheckedStateChanged(...)**
 
@@ -231,7 +236,7 @@ viewBuilder.AddLabel(new()); // => ViewBuilder<Window>
 viewBuilder.AddLabel(out Label label, "Text", hotKeySpecifier: null); // => ViewBuilder<Window>
 ```
 
-### MessageBox Extensions
+## MessageBox Extensions
 [MessageBoxExtensions.cs](/Extensions/ViewExtensions/MessageBoxExtensions.cs)
 
 **MessageBox.Confirm(...)**
@@ -260,11 +265,14 @@ MessageBox.Info(App,
     okText: "Proceed");
 ```
 
-### ApplicationNavigationExtensions
+## ApplicationNavigationExtensions
 [ApplicationNavigationExtensions.cs](/Extensions/ApplicationNavigationExtensions.cs)
 
 **NavigatesTo(...)**
-Sets the targetView's Accepting handler to navigate to the given runnable accepting.
+Sets the targetView's Accepting handler to navigate to the given runnable.
+
+<details>
+<summary>Example using instance</summary>
 
 ```csharp
 ViewBuilder<MainWindow> windowBuilder = this.Builder();
@@ -277,13 +285,13 @@ settings.Builder()
 backButton.OnActivating(_ => App.RequestStop());
 app.Navigation.NavigatesTo<Window>(targetView: settingsBtn, runnableTo: settings, closeCurrent: false);
 
+```
+</details>
 
-// app.Navigation.NavigatesTo<SettingsMenu>(targetView: settingsBtn, closeCurrent: false);
-// See small full example below
-```
 <details>
-<summary>Small Full Example</summary>
-```
+<summary>Example using class (creates fresh instance each navigation)</summary>
+
+```csharp
 public class SettingsMenu : Window
 {
     public SettingsMenu()
@@ -305,6 +313,25 @@ public class MainWindow : Window
 }
 using IApplication app = Application.Create().Init();
 app.Run(new MainWindow(app));
+```
+</details>
+
+<details>
+<summary>Example using factory (creates fresh instance each navigation)</summary>
+
+```csharp
+public class MainWindow : Window
+{
+    public MainWindow(IApplication app)
+    {
+        ViewBuilder windowBuilder = this.Builder();
+        windowBuilder.AddButton(out Button settingsBtn, "Go to settings Menu");
+        app.Navigation.NavigatesTo(
+            targetView: settingsBtn, 
+            runnableFactory: () => new SettingsMenu(), 
+            closeCurrent: false);
+    }
+}
 ```
 </details>
 

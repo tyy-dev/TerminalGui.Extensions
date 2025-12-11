@@ -8,6 +8,11 @@ public static class CheckBoxExtensions
 {
     extension(CheckBox checkbox)
     {
+        /// <summary>
+        /// Whether the checkbox is currently checked.
+        /// </summary>
+        public bool IsChecked => checkbox.CheckedState == CheckState.Checked;
+
         public View OnCheckedStateChanged(Action<EventArgs<CheckState>> callback)
         {
             checkbox.CheckedStateChanged += (_, e) => callback(e);
