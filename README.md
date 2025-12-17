@@ -9,6 +9,7 @@
 <!--TOC-->
   - [View Extensions](#view-extensions)
     - [CheckBox Extensions](#checkbox-extensions)
+      - [CheckState Extensions](#checkstate-extensions)
   - [ViewBuilder](#viewbuilder)
     - [Notes](#notes)
   - [MessageBox Extensions](#messagebox-extensions)
@@ -99,6 +100,7 @@ view.OnCommandNotBound(args => ...);
 **IsChecked**
 ```csharp
 bool isChecked = checkbox.IsChecked; // Equal to checkbox.CheckedState == CheckState.Checked;
+checkbox.IsChecked = true; // Equal to checkbox.CheckedState = CheckState.Checked;
 ```
 
 **OnCheckedStateChanged(...)**
@@ -115,6 +117,29 @@ wrapper for `checkbox.CheckedStateChanging += (_, args) => ...`
 
 ```csharp
 checkbox.OnCheckedStateChanging(args => ...);
+```
+
+#### CheckState Extensions
+[CheckBoxExtensions.cs](/Extensions/ViewExtensions/CheckBoxExtensions.cs)
+
+**static ConvertCheckState(...)**
+```csharp
+CheckState state1 = CheckState.ConvertCheckState(true);  // CheckState.Checked
+CheckState state2 = CheckState.ConvertCheckState(false); // CheckState.UnChecked
+CheckState state3 = CheckState.ConvertCheckState(null);  // CheckState.None
+```
+
+**static ConvertCheckState(..)**
+```csharp
+bool? value1 = CheckState.ConvertCheckState(CheckState.Checked);   // true
+bool? value2 = CheckState.ConvertCheckState(CheckState.UnChecked); // false
+bool? value3 = CheckState.ConvertCheckState(CheckState.None);      // null
+```
+
+**IsChecked**
+```csharp
+CheckState state = CheckState.UnChecked;
+bool? isChecked = state.IsChecked; // false
 ```
 
 ## ViewBuilder
@@ -254,7 +279,7 @@ viewBuilder.AddMenuBarItem(new()); // => ViewBuilder<Window>
 ## MessageBox Extensions
 [MessageBoxExtensions.cs](/Extensions/ViewExtensions/MessageBoxExtensions.cs)
 
-**MessageBox.Confirm(...)**
+**static MessageBox.Confirm(...)**
 ```csharp
 bool confirmed = MessageBox.Confirm(App, "Are you sure?");
 bool confirmed2 = MessageBox.Confirm(App,
@@ -263,7 +288,7 @@ bool confirmed2 = MessageBox.Confirm(App,
     noText: "Cancel");
 ```
 
-**MessageBox.Error(...)**
+**static MessageBox.Error(...)**
 ```csharp
 MessageBox.Error(App, "Something went wrong.");
 MessageBox.Error(App,
@@ -281,7 +306,7 @@ catch(Exception e)
 }
 ```
 
-**MessageBox.Info(...)**
+**static MessageBox.Info(...)**
 ```csharp
 MessageBox.Info(App, "Done.");
 MessageBox.Info(App,

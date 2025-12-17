@@ -4,10 +4,9 @@ using Terminal.Gui.Views;
 
 namespace TerminalGui.Extensions.Extensions.ViewExtensions;
 
-public static class CheckBoxExtensions
-{
-    extension(CheckBox checkbox)
-    {
+public static class CheckBoxExtensions {
+    #region Checkbox
+    extension(CheckBox checkbox) {
         /// <summary>
         /// Gets or sets the checked state of the checkbox control.
         /// </summary>
@@ -17,9 +16,9 @@ public static class CheckBoxExtensions
         /// of the checkbox accordingly.
         /// </remarks>
         public bool? IsChecked {
-            get => ConvertCheckState(checkbox.CheckedState);
+            get => checkbox.CheckedState.IsChecked;
             set => checkbox.CheckedState = ConvertCheckState(value);
-        } 
+        }
 
         public View OnCheckedStateChanged(Action<EventArgs<CheckState>> callback)
         {
@@ -33,16 +32,17 @@ public static class CheckBoxExtensions
             return checkbox;
         }
     }
+#endregion
 
-    extension(CheckState)
-    {
+    #region CheckState
+    extension(CheckState) {
         public static CheckState ConvertCheckState(bool? state) => state switch
         {
             true => CheckState.Checked,
             false => CheckState.UnChecked,
             null => CheckState.None,
         };
-        
+
         public static bool? ConvertCheckState(CheckState state) => state switch
         {
             CheckState.Checked => true,
@@ -50,4 +50,11 @@ public static class CheckBoxExtensions
             _ => null
         };
     }
+
+    extension(CheckState checkState)
+    {
+        public bool? IsChecked => ConvertCheckState(checkState);
+    }
+
+#endregion
 }
