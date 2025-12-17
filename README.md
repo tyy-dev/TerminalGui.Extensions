@@ -1,4 +1,4 @@
-﻿# TerminalGui.Extensions
+# TerminalGui.Extensions
 
 # WORK IN PROGRESS
 
@@ -260,6 +260,12 @@ viewBuilder.AddRadioButton(
     checkedState: CheckState.Checked, 
     allowCheckedStateNone: false, 
     hotKeySpecifier: null); // => ViewBuilder<Window>
+```
+
+**AddLabel(...)**
+
+```csharp
+// todo example
 ```
 
 **AddMenuBar(...)**
