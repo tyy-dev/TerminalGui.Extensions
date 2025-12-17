@@ -1,7 +1,7 @@
 ﻿using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
-
-using TerminalGui.Extensions.Core;
+using Terminal.Gui.Views;
+using TerminalGui.Extensions.Core.Builders;
 
 namespace TerminalGui.Extensions.Extensions.ViewExtensions;
 
@@ -11,13 +11,17 @@ public static class ViewBaseExtensions
     {
         public ViewBuilder<T> Builder() => new(view);
 
-        public ViewBuilder<T> ConfigureWithBuilder(Action<ViewBuilder<T>> callback)
-        {
-            ViewBuilder<T> viewbuilder = view.Builder();
-            callback.Invoke(viewbuilder);
-            return viewbuilder;
-        }
+        public ViewBuilder<T> ConfigureWithBuilder(Action<ViewBuilder<T>> callback) => ViewBuilder<T>.Configure(view.Builder, callback);
     }
+
+    // unused atm todo
+    //extension(MenuBar menuBar)
+    //{
+    //    public MenuBarBuilder Builder() => new(menuBar);
+
+    //    public MenuBarBuilder ConfigureWithBuilder(Action<MenuBarBuilder> callback) => ViewBuilder<MenuBar>.Configure(menuBar.Builder, callback);
+    //}
+
 
     extension(View view)
     {

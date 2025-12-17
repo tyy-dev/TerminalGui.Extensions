@@ -10,6 +10,7 @@
   - [View Extensions](#view-extensions)
     - [CheckBox Extensions](#checkbox-extensions)
   - [ViewBuilder](#viewbuilder)
+    - [Notes](#notes)
   - [MessageBox Extensions](#messagebox-extensions)
   - [ApplicationNavigationExtensions](#applicationnavigationextensions)
 <!--/TOC-->
@@ -18,6 +19,7 @@
 [ViewBaseExtensions.cs](/Extensions/ViewExtensions/ViewBaseExtensions.cs)
 
 **Builder()**
+Creates a builder instance for any View. For specialized views, the returned builder may be a specific type (e.g., MenuBarBuilder for MenuBar)
 
 ```csharp
 ViewBuilder<Window> builder = view.Builder();
@@ -26,6 +28,7 @@ builder.AddButton(out _, "Button Text");
 
 **ConfigureWithBuilder(...)**
 
+Just like builder() for specialized views, the calback provides may provide a more specific type
 ```csharp
 view.ConfigureWithBuilder(viewBuilder => 
 {
@@ -115,11 +118,17 @@ checkbox.OnCheckedStateChanging(args => ...);
 ```
 
 ## ViewBuilder
+[ViewBuilder.cs](/Core/Builders/ViewBuilder.cs)
 
 ### Notes
 
-+ All `Add` methods return the ViewBuilder instance for fluent chaining.
-+ All `Add` methods return which aren't AddX(X instance) return the added view through an the first out parameter. 
++ All `Add` methods return the `ViewBuilder` instance for fluent chaining.
++ All `Add(...)` methods return the added child via an `out` parameter as the first out parameter.
++ Some `Add` methods also return the specialized builder as the second out parameter, the following methods do so:
+| Method Type       | Out Parameters                                |
+|-------------------|-----------------------------------------------|
+| `None at the moment` | `N/A`                                              |
+
 + Parameters with `null` defaults retain their classes's initialization values.
 Except for the `Text` parameter which default to `"{typeName} {parent.SubViews.Count}"` (e.g., `"Button 3"`) if not provided.
 
@@ -228,11 +237,18 @@ viewBuilder.AddRadioButton(
     hotKeySpecifier: null); // => ViewBuilder<Window>
 ```
 
-**AddLabel(...)**
+**AddMenuBar(...)**
 
 ```csharp
-viewBuilder.AddLabel(new()); // => ViewBuilder<Window>
-viewBuilder.AddLabel(out Label label, "Text", hotKeySpecifier: null); // => ViewBuilder<Window>
+viewBuilder.AddMenuBar(new()); // => ViewBuilder<Window>
+// todo example viewBuilder.AddMenuBar(out MenuBar menuBar, ... todo); // => ViewBuilder<Window>
+```
+
+**AddMenuBarItem(...)**
+
+```csharp
+viewBuilder.AddMenuBarItem(new()); // => ViewBuilder<Window>
+// todo example viewBuilder.AddMenuBarItem(out MenuBarItem menuBarItem, ... todo); // => ViewBuilder<Window>
 ```
 
 ## MessageBox Extensions
@@ -254,6 +270,15 @@ MessageBox.Error(App,
     message: "Something went wrong.",
     title: "Error",
     okText: "Close");
+
+...
+catch(Exception e)
+{
+    MessageBox.Error(App, exception: e);
+    MessageBox.Error(App,
+        exception: e,
+        title: e.GetType().Name);
+}
 ```
 
 **MessageBox.Info(...)**
@@ -340,5 +365,4 @@ wrapper for `view.FocusedChanged += (_, args) => ...`
 
 ```csharp
 view.OnFocusChanged(args => ...);
-
 ```
