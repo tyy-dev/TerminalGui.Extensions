@@ -22,7 +22,6 @@ public static class ViewBaseExtensions
     //    public MenuBarBuilder ConfigureWithBuilder(Action<MenuBarBuilder> callback) => ViewBuilder<MenuBar>.Configure(menuBar.Builder, callback);
     //}
 
-
     extension(View view)
     {
         #region Layout

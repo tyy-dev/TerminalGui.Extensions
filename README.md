@@ -1,4 +1,4 @@
-# TerminalGui.Extensions
+﻿# TerminalGui.Extensions
 
 # WORK IN PROGRESS
 
@@ -280,6 +280,32 @@ viewBuilder.AddMenuBar(new()); // => ViewBuilder<Window>
 ```csharp
 viewBuilder.AddMenuBarItem(new()); // => ViewBuilder<Window>
 // todo example viewBuilder.AddMenuBarItem(out MenuBarItem menuBarItem, ... todo); // => ViewBuilder<Window>
+```
+
+**AddProgressBar(...)**
+```csharp
+viewBuilder.AddProgressBar(new()); // => ViewBuilder<Window>
+// todo example viewBuilder.AddProgressBar(out ProgressBar progressBar, ... todo); // => ViewBuilder<Window>
+```
+
+**AddWindow(...)**
+```csharp
+viewBuilder.AddWindow(new()); // => ViewBuilder<Window>
+
+viewBuilder.AddWindow(out Window subWindow, out List<View> addedViews, [new Label()
+{
+     Text = "Hello, World!"
+}]);
+
+// As view instances are added using .Builder().Add(), rather than .Add
+// this is equal to:
+
+Window window = new();
+viewBuilder.AddWindow(window);
+window.Builder()
+    .Add(new Label() {
+     Text = "Hello, World!"
+    });
 ```
 
 ## MessageBox Extensions
