@@ -17,7 +17,7 @@ public static class TextFieldExtensions
         ///     The callback to invoke with the <see cref="ValueChangedEventArgs{T}" /> containing old and new
         ///     values.
         /// </param>
-        /// <returns>The <see cref="TextField" /> instance for fluent chaining.</returns>
+        /// <returns>The <see cref="TextField" /> instance.</returns>
         public TextField OnValueChanged(Action<ValueChangedEventArgs<string?>> callback)
         {
             textField.ValueChanged += (_, e) => callback(e);
@@ -29,7 +29,7 @@ public static class TextFieldExtensions
         ///     Set <see cref="ResultEventArgs{T}.Result" /> to <see langword="null" /> in the callback to cancel the change.
         /// </summary>
         /// <param name="callback">The callback to invoke with the <see cref="ResultEventArgs{T}" /> containing the proposed text.</param>
-        /// <returns>The <see cref="TextField" /> instance for fluent chaining.</returns>
+        /// <returns>The <see cref="TextField" /> instance.</returns>
         public TextField OnTextChanging(Action<ResultEventArgs<string>> callback)
         {
             textField.TextChanging += (_, e) => callback(e);

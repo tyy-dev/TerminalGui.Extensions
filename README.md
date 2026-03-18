@@ -2,6 +2,108 @@
 
 # WORK IN PROGRESS
 
+<details>
+<summary>Full Example — Building a settings window with multiple panels</summary>
+
+```csharp
+public class SettingsWindow : Window
+{
+    public SettingsWindow()
+    {
+        Title = "Settings";
+        this.WithFill();
+
+        ViewBuilder<SettingsWindow> builder = this.Builder();
+
+        builder.AddFrameView(out FrameView audioFrame, title: "Audio");
+        audioFrame.WithFillAuto();
+
+        ViewBuilder<FrameView> audioBuilder = audioFrame.Builder();
+
+        audioBuilder.AddLabel(out _, text: "Master Volume:");
+
+        audioBuilder.AddNumericUpDown(
+            out NumericUpDownConstrained<int> nudVolume,
+            value: 80,
+            step: 5,
+            min: 0,
+            max: 100,
+            format: "{0}%");
+
+        audioBuilder.AddCheckBox(out CheckBox chkMute, text: "Mute All");
+        chkMute.IsChecked = false;
+
+        builder.AddFrameView(out FrameView displayFrame, title: "Display");
+        displayFrame.WithFillAuto();
+
+        ViewBuilder<FrameView> displayBuilder = displayFrame.Builder();
+
+        displayBuilder.AddOptionSelector(
+            out OptionSelector themeSelector,
+            labels: ["Dark", "Light", "Solarized"],
+            value: 0);
+
+        themeSelector.OnValueChanged(e =>
+            ApplyTheme(e.NewValue ?? 0));
+
+        displayBuilder.AddCheckBox(
+            out CheckBox chkAnimations,
+            text: "Enable Animations",
+            checkedState: CheckState.Checked);
+
+        builder.AddTabView(out TabView tabView);
+        tabView.WithFill();
+
+        View generalContent = new View().WithFill();
+        generalContent.Builder()
+           .AddLabel(out _, text: "Player Name:")
+           .AddTextField(out TextField tfName, text: "Player 1")
+           .AddLabel(out _, text: "Difficulty:")
+           .AddOptionSelector(out OptionSelector<Difficulty> diffSelector, value: Difficulty.Normal);
+
+        tfName.OnValueChanged(e =>
+            Console.WriteLine($"Name changed to: {e.NewValue}"));
+
+        View keybindsContent = new View().WithFill();
+        keybindsContent.MakeScrollable();
+        ViewBuilder<View> keybindsBuilder = keybindsContent.Builder();
+
+        keybindsBuilder.AddLabel(out _, text: "Move Up:");
+        keybindsBuilder.AddTextField(out _, text: "W", readOnly: true);
+        keybindsBuilder.AddLabel(out _, text: "Move Down:");
+        keybindsBuilder.AddTextField(out _, text: "S", readOnly: true);
+        keybindsBuilder.AddLabel(out _, text: "Interact:");
+        keybindsBuilder.AddTextField(out _, text: "E", readOnly: true);
+
+        tabView.Builder()
+           .AddTab(out _, text: "General", view: generalContent)
+           .AddTab(out _, text: "Keybinds", view: keybindsContent);
+
+        // ── Status bar ───────────────────────────────────────────────
+        builder.AddStatusBar(out _, statusBar => statusBar
+           .AddShortcut(text: "Save", key: Key.S.WithCtrl)
+           .AddShortcut(text: "Close", key: Key.Esc)
+        );
+
+        chkMute.OnValueChanging(e => {
+            bool isChecked = e.NewValue == CheckState.Checked;
+            nudVolume.Max = isChecked ? 0 : 100;
+
+            if (isChecked)
+            {
+                nudVolume.Value = 0;
+            }
+        });
+    }
+
+    private static void ApplyTheme(int themeIndex)
+    { /* ... */
+    }
+}
+```
+
+</details>
+
 ## Table of contents
 *For more in depth documentation refer to the SourceCode listed under every TOC header*</br>
 *Also refer to [Terminal.Gui Documentation](https://gui-cs.github.io/Terminal.Gui/)*
@@ -148,6 +250,21 @@ bool isChecked = checkbox.IsChecked; // Equal to checkbox.CheckedState == CheckS
 checkbox.IsChecked = true; // Equal to checkbox.CheckedState = CheckState.Checked;
 ```
 
+**Event Wrappers**
+
+| Method | Equivalent |
+|--------|-----------|
+| `OnValueChanged(callback)` | `checkbox.ValueChanged += ...` |
+| `OnValueChanging(callback)` | `checkbox.ValueChanging += ...` |
+
+```csharp
+checkbox.OnValueChanged(e => Console.WriteLine($"Changed from {e.OldValue} to {e.NewValue}"));
+checkbox.OnValueChanging(e => {
+    if (e.NewValue == CheckState.None)
+        e.Handled = true; // cancel the change
+});
+```
+
 #### CheckState Extensions
 [CheckBoxExtensions.cs](/Extensions/ViewExtensions/CheckBoxExtensions.cs)
 
@@ -284,7 +401,7 @@ nud.Max = newCapacity;
 
 ### Notes
 
-+ All `Add` methods return the `ViewBuilder` instance for fluent chaining.
++ All `Add` methods return the `ViewBuilder` instance.
 + All `Add(...)` methods return the added child via an `out` parameter as the first out parameter.
 + Parameters with `null` defaults retain their class's initialization values.
 Except for the `Text` parameter which defaults to `"{typeName} {parent.SubViews.Count}"` (e.g., `"Button 3"`) if not provided.
@@ -372,7 +489,7 @@ Every view type follows the same pattern — two overloads:
 | `AddScrollSlider` | `ScrollSlider` | `orientation`, `size`, `position`, `visibleContentSize`, `sliderPadding` |
 | `AddShortcut` | `Shortcut` | `text`, `key`, `action`, `helpText`, `bindKeyToApplication`, `command`, `targetView`, ... |
 | `AddSpinnerView` | `SpinnerView` | `style`, `autoSpin`, `spinDelay`, `spinBounce`, `spinReverse`, `sequence` |
-| `AddStatusBar` | `StatusBar` | `shortcuts`, `orientation`, `alignmentModes` |
+| `AddStatusBar` | `StatusBar` | `shortcuts` or `configureShortcuts` callback, `orientation`, `alignmentModes` |
 | `AddTab` | `Tab` | `text`, `view`, `displayText` |
 | `AddTabView` | `TabView` | `maxTabTextWidth`, `style`, `selectedTab`, `tabScrollOffset` |
 | `AddTableView` | `TableView` | `table`, `fullRowSelect`, `multiSelect`, `style`, `selectedRow`, `selectedColumn`, ... |

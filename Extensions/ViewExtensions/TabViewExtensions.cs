@@ -13,7 +13,7 @@ public static class TabViewExtensions
         ///     Subscribes to the <see cref="TabView.SelectedTabChanged" /> event.
         /// </summary>
         /// <param name="callback">The callback to invoke with the <see cref="TabChangedEventArgs" /> containing old and new tabs.</param>
-        /// <returns>The <see cref="TabView" /> instance for fluent chaining.</returns>
+        /// <returns>The <see cref="TabView" /> instance.</returns>
         public TabView OnSelectedTabChanged(Action<TabChangedEventArgs> callback)
         {
             tabView.SelectedTabChanged += (_, e) => callback(e);
@@ -24,7 +24,7 @@ public static class TabViewExtensions
         ///     Subscribes to the <see cref="TabView.TabClicked" /> event.
         /// </summary>
         /// <param name="callback">The callback to invoke with the <see cref="TabMouseEventArgs" />.</param>
-        /// <returns>The <see cref="TabView" /> instance for fluent chaining.</returns>
+        /// <returns>The <see cref="TabView" /> instance.</returns>
         public TabView OnTabClicked(Action<TabMouseEventArgs> callback)
         {
             tabView.TabClicked += (_, e) => callback(e);

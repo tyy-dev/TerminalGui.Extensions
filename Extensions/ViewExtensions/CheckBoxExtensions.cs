@@ -1,4 +1,5 @@
-﻿using Terminal.Gui.Views;
+﻿using Terminal.Gui.App;
+using Terminal.Gui.Views;
 
 namespace TerminalGui.Extensions.Extensions.ViewExtensions;
 
@@ -19,6 +20,36 @@ public static class CheckBoxExtensions
         public bool? IsChecked {
             get => checkbox.Value.IsChecked;
             set => checkbox.Value = CheckState.ConvertCheckState(value);
+        }
+
+        /// <summary>
+        ///     Subscribes to the <see cref="CheckBox.ValueChanged" /> event.
+        /// </summary>
+        /// <param name="callback">
+        ///     The callback to invoke with the <see cref="ValueChangedEventArgs{T}" /> containing old and new
+        ///     values.
+        /// </param>
+        /// <returns>The <see cref="CheckBox" /> instance.</returns>
+        public CheckBox OnValueChanged(Action<ValueChangedEventArgs<CheckState>> callback)
+        {
+            checkbox.ValueChanged += (_, e) => callback(e);
+            return checkbox;
+        }
+
+        /// <summary>
+        ///     Subscribes to the <see cref="CheckBox.ValueChanging" /> event.
+        ///     Set <see cref="ValueChangingEventArgs{T}.Handled" /> to <see langword="true" /> in the callback to cancel the
+        ///     change.
+        /// </summary>
+        /// <param name="callback">
+        ///     The callback to invoke with the <see cref="ValueChangingEventArgs{T}" /> containing current and
+        ///     proposed values.
+        /// </param>
+        /// <returns>The <see cref="CheckBox" /> instance.</returns>
+        public CheckBox OnValueChanging(Action<ValueChangingEventArgs<CheckState>> callback)
+        {
+            checkbox.ValueChanging += (_, e) => callback(e);
+            return checkbox;
         }
     }
 
@@ -45,6 +76,12 @@ public static class CheckBoxExtensions
 
     extension(CheckState checkState)
     {
+        /// <summary>
+        ///     The <see cref="CheckState" /> converted to a nullable <see cref="bool" />.
+        ///     <see cref="CheckState.Checked" /> returns <see langword="true" />,
+        ///     <see cref="CheckState.UnChecked" /> returns <see langword="false" />,
+        ///     and <see cref="CheckState.None" /> returns <see langword="null" />.
+        /// </summary>
         public bool? IsChecked => CheckState.ConvertCheckState(checkState);
     }
 

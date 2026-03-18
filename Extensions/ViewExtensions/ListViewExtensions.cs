@@ -36,7 +36,7 @@ public static class ListViewExtensions
         ///     The callback to invoke with the <see cref="ValueChangedEventArgs{T}" /> containing old and new
         ///     selected indices.
         /// </param>
-        /// <returns>The <see cref="ListView" /> instance for fluent chaining.</returns>
+        /// <returns>The <see cref="ListView" /> instance.</returns>
         public ListView OnValueChanged(Action<ValueChangedEventArgs<int?>> callback)
         {
             listView.ValueChanged += (_, e) => callback(e);
@@ -47,7 +47,7 @@ public static class ListViewExtensions
         ///     Subscribes to the <see cref="ListView.CollectionChanged" /> event.
         /// </summary>
         /// <param name="callback">The callback to invoke with the <see cref="NotifyCollectionChangedEventArgs" />.</param>
-        /// <returns>The <see cref="ListView" /> instance for fluent chaining.</returns>
+        /// <returns>The <see cref="ListView" /> instance.</returns>
         public ListView OnCollectionChanged(Action<NotifyCollectionChangedEventArgs> callback)
         {
             listView.CollectionChanged += (_, e) => callback(e);
@@ -58,7 +58,7 @@ public static class ListViewExtensions
         ///     Subscribes to the <see cref="ListView.SourceChanged" /> event.
         /// </summary>
         /// <param name="callback">The callback to invoke when the source changes.</param>
-        /// <returns>The <see cref="ListView" /> instance for fluent chaining.</returns>
+        /// <returns>The <see cref="ListView" /> instance.</returns>
         public ListView OnSourceChanged(Action callback)
         {
             listView.SourceChanged += (_, _) => callback();
@@ -70,7 +70,7 @@ public static class ListViewExtensions
         /// </summary>
         /// <param name="vertical">Whether to show the vertical scroll bar.</param>
         /// <param name="horizontal">Whether to show the horizontal scroll bar.</param>
-        /// <returns>The <see cref="ListView" /> instance for fluent chaining.</returns>
+        /// <returns>The <see cref="ListView" /> instance.</returns>
         public ListView WithScrollBars(bool vertical = true, bool horizontal = false)
         {
             listView.VerticalScrollBar.Visible = vertical;

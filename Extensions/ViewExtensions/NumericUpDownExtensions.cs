@@ -17,7 +17,7 @@ public static class NumericUpDownExtensions
         ///     The callback to invoke with the <see cref="ValueChangedEventArgs{T}" /> containing old and new
         ///     values.
         /// </param>
-        /// <returns>The <see cref="NumericUpDown{T}" /> instance for fluent chaining.</returns>
+        /// <returns>The <see cref="NumericUpDown{T}" /> instance.</returns>
         public NumericUpDown<T> OnValueChanged(Action<ValueChangedEventArgs<T?>> callback)
         {
             numericUpDown.ValueChanged += (_, e) => callback(e);
@@ -33,7 +33,7 @@ public static class NumericUpDownExtensions
         ///     The callback to invoke with the <see cref="ValueChangingEventArgs{T}" /> containing current and
         ///     proposed values.
         /// </param>
-        /// <returns>The <see cref="NumericUpDown{T}" /> instance for fluent chaining.</returns>
+        /// <returns>The <see cref="NumericUpDown{T}" /> instance.</returns>
         public NumericUpDown<T> OnValueChanging(Action<ValueChangingEventArgs<T?>> callback)
         {
             numericUpDown.ValueChanging += (_, e) => callback(e);

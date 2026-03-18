@@ -1379,6 +1379,68 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         }
     );
 
+    /// <inheritdoc cref="AddShortcut(Shortcut)" path="/summary" />
+    /// <param name="text">
+    ///     <inheritdoc cref="Shortcut.Text" path="/summary" />
+    /// </param>
+    /// <param name="key">
+    ///     <inheritdoc cref="Shortcut.Key" path="/summary" />
+    /// </param>
+    /// <param name="action">
+    ///     <inheritdoc cref="Shortcut.Action" path="/summary" />
+    /// </param>
+    /// <param name="helpText">
+    ///     <inheritdoc cref="Shortcut.HelpText" path="/summary" />
+    /// </param>
+    /// <param name="bindKeyToApplication">
+    ///     <inheritdoc cref="Shortcut.BindKeyToApplication" path="/summary" />
+    /// </param>
+    /// <param name="orientation">
+    ///     <inheritdoc cref="Shortcut.Orientation" path="/summary" />
+    /// </param>
+    /// <param name="commandView">
+    ///     <inheritdoc cref="Shortcut.CommandView" path="/summary" />
+    /// </param>
+    /// <param name="alignmentModes">
+    ///     <inheritdoc cref="Shortcut.AlignmentModes" path="/summary" />
+    /// </param>
+    /// <param name="command">
+    ///     <inheritdoc cref="Shortcut.Command" path="/summary" />
+    /// </param>
+    /// <param name="targetView">
+    ///     <inheritdoc cref="Shortcut.TargetView" path="/summary" />
+    /// </param>
+    /// <param name="minimumKeyTextSize">
+    ///     <inheritdoc cref="Shortcut.MinimumKeyTextSize" path="/summary" />
+    /// </param>
+    /// <inheritdoc cref="AddShortcut(Shortcut)" path="/returns" />
+    public ViewBuilder<TParent> AddShortcut(
+        string? text = null,
+        Key? key = null,
+        Action? action = null,
+        string? helpText = null,
+        bool? bindKeyToApplication = null,
+        Orientation? orientation = null,
+        View? commandView = null,
+        AlignmentModes? alignmentModes = null,
+        Command? command = null,
+        View? targetView = null,
+        int? minimumKeyTextSize = null
+    ) => AddShortcut(
+        out _,
+        text,
+        key,
+        action,
+        helpText,
+        bindKeyToApplication,
+        orientation,
+        commandView,
+        alignmentModes,
+        command,
+        targetView,
+        minimumKeyTextSize
+    );
+
     #endregion
 
     #region Linear Range
@@ -1544,6 +1606,36 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         sb => {
             sb.Orientation = orientation ?? sb.Orientation;
             sb.AlignmentModes = alignmentModes ?? sb.AlignmentModes;
+        }
+    );
+
+    /// <inheritdoc cref="AddStatusBar(StatusBar)" path="/summary" />
+    /// <param name="statusBarOut">
+    ///     The newly added <see cref="StatusBar" /> instance
+    /// </param>
+    /// <param name="configureShortcuts">
+    ///     A callback that receives a <see cref="ViewBuilder{TParent}" /> for the <see cref="StatusBar" />,
+    ///     allowing shortcuts to be added via <see cref="AddShortcut(string?, Key?, Action?, string?, bool?, Orientation?, View?, AlignmentModes?, Command?, View?, int?)" />.
+    /// </param>
+    /// <param name="orientation">
+    ///     <inheritdoc cref="Bar.Orientation" path="/summary" />
+    /// </param>
+    /// <param name="alignmentModes">
+    ///     <inheritdoc cref="Bar.AlignmentModes" path="/summary" />
+    /// </param>
+    /// <inheritdoc cref="AddStatusBar(StatusBar)" path="/returns" />
+    public ViewBuilder<TParent> AddStatusBar(
+        out StatusBar statusBarOut,
+        Action<ViewBuilder<StatusBar>> configureShortcuts,
+        Orientation? orientation = null,
+        AlignmentModes? alignmentModes = null
+    ) => Add(
+        out statusBarOut,
+        new(),
+        sb => {
+            sb.Orientation = orientation ?? sb.Orientation;
+            sb.AlignmentModes = alignmentModes ?? sb.AlignmentModes;
+            configureShortcuts(sb.Builder());
         }
     );
 

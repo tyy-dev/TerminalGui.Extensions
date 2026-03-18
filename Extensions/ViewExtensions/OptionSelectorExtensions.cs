@@ -17,7 +17,7 @@ public static class OptionSelectorExtensions
         ///     The callback to invoke with the <see cref="ValueChangedEventArgs{T}" /> containing old and new
         ///     values.
         /// </param>
-        /// <returns>The <see cref="OptionSelector" /> instance for fluent chaining.</returns>
+        /// <returns>The <see cref="OptionSelector" /> instance.</returns>
         public OptionSelector OnValueChanged(Action<ValueChangedEventArgs<int?>> callback)
         {
             optionSelector.ValueChanged += (_, e) => callback(e);
@@ -33,7 +33,7 @@ public static class OptionSelectorExtensions
         ///     The callback to invoke with the <see cref="ValueChangingEventArgs{T}" /> containing current and
         ///     proposed values.
         /// </param>
-        /// <returns>The <see cref="OptionSelector" /> instance for fluent chaining.</returns>
+        /// <returns>The <see cref="OptionSelector" /> instance.</returns>
         public OptionSelector OnValueChanging(Action<ValueChangingEventArgs<int?>> callback)
         {
             optionSelector.ValueChanging += (_, e) => callback(e);
@@ -47,7 +47,7 @@ public static class OptionSelectorExtensions
         ///     Subscribes to the <see cref="OptionSelector{TEnum}.ValueChanged" /> event.
         /// </summary>
         /// <param name="callback">The callback to invoke with the <see cref="EventArgs{T}" /> containing the new value.</param>
-        /// <returns>The <see cref="OptionSelector{TEnum}" /> instance for fluent chaining.</returns>
+        /// <returns>The <see cref="OptionSelector{TEnum}" /> instance.</returns>
         public OptionSelector<TEnum> OnValueChanged(Action<EventArgs<TEnum?>> callback)
         {
             optionSelector.ValueChanged += (_, e) => callback(e);
