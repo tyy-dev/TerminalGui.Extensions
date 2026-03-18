@@ -6,21 +6,32 @@
 *For more in depth documentation refer to the SourceCode listed under every TOC header*</br>
 *Also refer to [Terminal.Gui Documentation](https://gui-cs.github.io/Terminal.Gui/)*
 
-<!--TOC-->
+<!-- TOC-->
   - [View Extensions](#view-extensions)
     - [CheckBox Extensions](#checkbox-extensions)
       - [CheckState Extensions](#checkstate-extensions)
+    - [ListView Extensions](#listview-extensions)
+    - [NumericUpDown Extensions](#numericupdown-extensions)
+    - [OptionSelector Extensions](#optionselector-extensions)
+    - [TabView Extensions](#tabview-extensions)
+    - [TextField Extensions](#textfield-extensions)
+  - [Custom Views](#custom-views)
+    - [NumericUpDownConstrained\<T\>](#numericupdownconstrainedt)
   - [ViewBuilder](#viewbuilder)
     - [Notes](#notes)
+    - [Properties](#properties)
+    - [Core Methods](#core-methods)
+    - [Add Methods](#add-methods)
   - [MessageBox Extensions](#messagebox-extensions)
   - [ApplicationNavigationExtensions](#applicationnavigationextensions)
-<!--/TOC-->
+<!-- TOC -->
 
 ## View Extensions
 [ViewBaseExtensions.cs](/Extensions/ViewExtensions/ViewBaseExtensions.cs)
 
 **Builder()**
-Creates a builder instance for any View. For specialized views, the returned builder may be a specific type (e.g., MenuBarBuilder for MenuBar)
+
+Creates a `ViewBuilder<T>` instance for any View.
 
 ```csharp
 ViewBuilder<Window> builder = view.Builder();
@@ -29,13 +40,13 @@ builder.AddButton(out _, "Button Text");
 
 **ConfigureWithBuilder(...)**
 
-Just like builder() for specialized views, the calback provides may provide a more specific type
+Creates a builder via `Builder()` and passes it to the callback.
+
 ```csharp
-view.ConfigureWithBuilder(viewBuilder => 
+view.ConfigureWithBuilder(viewBuilder =>
 {
     viewBuilder.AddButton(out _, "Button Text");
 });
-
 ```
 
 **WithLayout(...)**
@@ -54,45 +65,79 @@ view.WithLayout(
 );
 ```
 
-**OnAccepted(...)**
+**MakeScrollable()**
 
-wrapper for `view.Accepted += (_, args) => ...`
+Configures the view as scrollable content with a vertical scroll bar. Automatically tracks the content size based on subview positions.
 
 ```csharp
-view.OnAccepted(args => ...);
+view.MakeScrollable();
 ```
 
-**OnAccepting(...)**
+**Command Event Wrappers**
 
-wrapper for `view.Accepting += (_, args) => ...`
+| Method | Wraps |
+|--------|-------|
+| `OnAccepted(callback)` | `view.Accepted += ...` |
+| `OnAccepting(callback)` | `view.Accepting += ...` |
+| `OnActivating(callback)` | `view.Activating += ...` |
+| `OnHandlingHotKey(callback)` | `view.HandlingHotKey += ...` |
+| `OnCommandNotBound(callback)` | `view.CommandNotBound += ...` |
 
 ```csharp
 view.OnAccepting(args => ...);
 ```
 
-**OnActivating(...)**
+**Keyboard Event Wrappers**
 
-wrapper for `view.Activating += (_, args) => ...`
+| Method | Wraps |
+|--------|-------|
+| `OnKeyDown(callback)` | `view.KeyDown += ...` |
+| `OnKeyDownNotHandled(callback)` | `view.KeyDownNotHandled += ...` |
 
-```csharp
-view.OnActivating(args => ...);
-```
+**Mouse Event Wrappers**
 
-**OnHandlingHotKey(...)**
+| Method | Wraps |
+|--------|-------|
+| `OnMouseEvent(callback)` | `view.MouseEvent += ...` |
+| `OnMouseEnter(callback)` | `view.MouseEnter += ...` |
+| `OnMouseLeave(callback)` | `view.MouseLeave += ...` |
 
-wrapper for `view.HandlingHotKey += (_, args) => ...`
+**Focus Event Wrappers**
 
-```csharp
-view.OnHandlingHotKey(args => ...);
-```
+| Method | Wraps |
+|--------|-------|
+| `OnHasFocusChanged(callback)` | `view.HasFocusChanged += ...` |
+| `OnFocusedChanged(callback)` | `view.FocusedChanged += ...` |
 
-**OnCommandNotBound(...)**
+**Lifecycle Event Wrappers**
 
-wrapper for `view.CommandNotBound += (_, args) => ...`
+| Method | Wraps |
+|--------|-------|
+| `OnInitialized(callback)` | `view.Initialized += ...` |
+| `OnDisposing(callback)` | `view.Disposing += ...` |
 
-```csharp
-view.OnCommandNotBound(args => ...);
-```
+**State Change Event Wrappers**
+
+| Method | Wraps |
+|--------|-------|
+| `OnVisibleChanged(callback)` | `view.VisibleChanged += ...` |
+| `OnEnabledChanged(callback)` | `view.EnabledChanged += ...` |
+| `OnTextChanged(callback)` | `view.TextChanged += ...` |
+| `OnTitleChanged(callback)` | `view.TitleChanged += ...` |
+
+**Layout Event Wrappers**
+
+| Method | Wraps |
+|--------|-------|
+| `OnSubViewsLaidOut(callback)` | `view.SubViewsLaidOut += ...` |
+| `OnFrameChanged(callback)` | `view.FrameChanged += ...` |
+
+**Drawing Event Wrappers**
+
+| Method | Wraps |
+|--------|-------|
+| `OnDrawComplete(callback)` | `view.DrawComplete += ...` |
+| `OnDrawingContent(callback)` | `view.DrawingContent += ...` |
 
 ### CheckBox Extensions
 [CheckBoxExtensions.cs](/Extensions/ViewExtensions/CheckBoxExtensions.cs)
@@ -101,22 +146,6 @@ view.OnCommandNotBound(args => ...);
 ```csharp
 bool isChecked = checkbox.IsChecked; // Equal to checkbox.CheckedState == CheckState.Checked;
 checkbox.IsChecked = true; // Equal to checkbox.CheckedState = CheckState.Checked;
-```
-
-**OnCheckedStateChanged(...)**
-
-wrapper for `checkbox.CheckedStateChanged += (_, args) => ...`
-
-```csharp
-checkbox.OnCheckedStateChanged(args => ...);
-```
-
-**OnCheckedStateChanging(...)**
-
-wrapper for `checkbox.CheckedStateChanging += (_, args) => ...`
-
-```csharp
-checkbox.OnCheckedStateChanging(args => ...);
 ```
 
 #### CheckState Extensions
@@ -129,7 +158,6 @@ CheckState state2 = CheckState.ConvertCheckState(false); // CheckState.UnChecked
 CheckState state3 = CheckState.ConvertCheckState(null);  // CheckState.None
 ```
 
-**static ConvertCheckState(..)**
 ```csharp
 bool? value1 = CheckState.ConvertCheckState(CheckState.Checked);   // true
 bool? value2 = CheckState.ConvertCheckState(CheckState.UnChecked); // false
@@ -142,6 +170,115 @@ CheckState state = CheckState.UnChecked;
 bool? isChecked = state.IsChecked; // false
 ```
 
+### ListView Extensions
+[ListViewExtensions.cs](/Extensions/ViewExtensions/ListViewExtensions.cs)
+
+**GetSelectedItem\<T\>(...)**
+
+Returns the currently selected item from the source list, or `default` when nothing is selected.
+
+```csharp
+IList<string> items = ["Apple", "Banana", "Cherry"];
+string? selected = listView.GetSelectedItem(items);
+```
+
+**WithScrollBars(...)**
+
+```csharp
+listView.WithScrollBars(vertical: true, horizontal: false);
+```
+
+| Method | Wraps |
+|--------|-------|
+| `OnValueChanged(callback)` | `listView.ValueChanged += ...` |
+| `OnCollectionChanged(callback)` | `listView.CollectionChanged += ...` |
+| `OnSourceChanged(callback)` | `listView.SourceChanged += ...` |
+
+### NumericUpDown Extensions
+[NumericUpDownExtensions.cs](/Extensions/ViewExtensions/NumericUpDownExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnValueChanged(callback)` | `numericUpDown.ValueChanged += ...` |
+| `OnValueChanging(callback)` | `numericUpDown.ValueChanging += ...` |
+
+```csharp
+numericUpDown.OnValueChanged(e => Console.WriteLine($"New: {e.NewValue}"));
+numericUpDown.OnValueChanging(e => {
+    if (e.NewValue < 0) e.Handled = true; // cancel negative values
+});
+```
+
+### OptionSelector Extensions
+[OptionSelectorExtensions.cs](/Extensions/ViewExtensions/OptionSelectorExtensions.cs)
+
+**OptionSelector**
+
+| Method | Wraps |
+|--------|-------|
+| `OnValueChanged(callback)` | `optionSelector.ValueChanged += ...` |
+| `OnValueChanging(callback)` | `optionSelector.ValueChanging += ...` |
+
+**OptionSelector\<TEnum\>**
+
+| Method | Wraps |
+|--------|-------|
+| `OnValueChanged(callback)` | `optionSelector.ValueChanged += ...` |
+
+### TabView Extensions
+[TabViewExtensions.cs](/Extensions/ViewExtensions/TabViewExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnSelectedTabChanged(callback)` | `tabView.SelectedTabChanged += ...` |
+| `OnTabClicked(callback)` | `tabView.TabClicked += ...` |
+
+### TextField Extensions
+[TextFieldExtensions.cs](/Extensions/ViewExtensions/TextFieldExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnValueChanged(callback)` | `textField.ValueChanged += ...` |
+| `OnTextChanging(callback)` | `textField.TextChanging += ...` |
+
+```csharp
+textField.OnValueChanged(e => Console.WriteLine($"New: {e.NewValue}"));
+textField.OnTextChanging(e => {
+    if (e.Result?.Contains("bad") == true) e.Result = null; // cancel
+});
+```
+
+## Custom Views
+
+### NumericUpDownConstrained\<T\>
+[NumericUpDownConstrained.cs](/Core/Views/NumericUpDownConstrained.cs)
+
+A `NumericUpDown<T>` subclass with dynamically settable `Min` and `Max` constraints. The constraints are enforced via the `ValueChanging` event and update immediately when the properties change.
+
+Setting `Min` or `Max` to `null` disables the corresponding constraint.
+
+```csharp
+var nud = new NumericUpDownConstrained<int> { Min = 0, Max = 100, Value = 50 };
+
+// Constraints are dynamic — update them at any time:
+nud.Max = 200;
+nud.Min = null; // remove lower bound
+```
+
+The `AddNumericUpDown(...)` builder method creates a `NumericUpDownConstrained<T>` by default:
+
+```csharp
+viewBuilder.AddNumericUpDown(
+    out NumericUpDownConstrained<double> nud,
+    value: 10.0,
+    step: 0.5,
+    min: 0.0,
+    max: 100.0);
+
+// Later, adjust the constraint dynamically:
+nud.Max = newCapacity;
+```
+
 ## ViewBuilder
 [ViewBuilder.cs](/Core/Builders/ViewBuilder.cs)
 
@@ -149,21 +286,17 @@ bool? isChecked = state.IsChecked; // false
 
 + All `Add` methods return the `ViewBuilder` instance for fluent chaining.
 + All `Add(...)` methods return the added child via an `out` parameter as the first out parameter.
-+ Some `Add` methods also return the specialized builder as the second out parameter, the following methods do so:
-| Method Type       | Out Parameters                                |
-|-------------------|-----------------------------------------------|
-| `None at the moment` | `N/A`                                              |
++ Parameters with `null` defaults retain their class's initialization values.
+Except for the `Text` parameter which defaults to `"{typeName} {parent.SubViews.Count}"` (e.g., `"Button 3"`) if not provided.
 
-+ Parameters with `null` defaults retain their classes's initialization values.
-Except for the `Text` parameter which default to `"{typeName} {parent.SubViews.Count}"` (e.g., `"Button 3"`) if not provided.
+### Properties
 
 **NextPosY**
 
-A property used for automatically positioning children when added via the ViewBuilder.</br>
-This property should be a function that determines how to position a new child relative to the previously added child. </br>
-The function takes the last added child as input and returns the Y position to use for the new child, or null to skip auto-positioning.
+A function that determines how to position a new child relative to the previously added child.</br>
+Takes the last added child as input and returns the Y position to use for the new child, or null to skip auto-positioning.
 
-By default this is Pos.Bottom, which ensures that each new child is placed directly below the last added child.
+By default this is `Pos.Bottom`, which ensures that each new child is placed directly below the last added child.
 
 **NextPosX**
 
@@ -171,55 +304,91 @@ Does the exact same as NextPosY, but for the X position. By default no auto-posi
 
 **SkipAutoPositioning**
 
-If true, skips any auto-positioning logic for any future added childam, unless it is set to false again.
-It is suggested to set this property when using view.WithLayout if you do not want auto-positioning to interfere with the layouting.
+If true, skips any auto-positioning logic for any future added children, unless set to false again.
+It is suggested to set this property when using `view.WithLayout(...)` if you do not want auto-positioning to interfere with the layout.
+
+### Core Methods
+
+**GetView()**
+
+Returns the parent `View` associated with the builder.
 
 **GetLastChildAdded()**
 
 ```csharp
 viewBuilder.AddButton(out _, "a button");
-Button? button = viewBuilder.GetLastChildAdded() as Button; // also in this case equal to AddButton(out Button button, ...);
+Button? button = viewBuilder.GetLastChildAdded() as Button;
 ```
 
 **Add(...)**
 
 ```csharp
-windowBuilder.Add(out Button button, new(), btn => btn.Text = "Click me"); // => ViewBuilder<Window>
+windowBuilder.Add(out Button button, new(), btn => btn.Text = "Click me");
 
-// You're also able to directly add ViewBuilder's
-ViewBuilder<Window> windowBuilder = this.Builder();
-
+// You can also add a ViewBuilder directly:
 ViewBuilder<Menu> menuBuilder = new Menu().Builder();
-menuBuilder.AddLabel(out Label label, "Menu 1"); // => ViewBuilder<Menu>
-
-windowBuilder.Add(menuBuilder, out Menu Menu); // => ViewBuilder<Window>
+menuBuilder.AddLabel(out Label label, "Menu 1");
+windowBuilder.Add(menuBuilder, out Menu menu);
 ```
 
-**AddBar(...)**
+### Add Methods
+
+Every view type follows the same pattern — two overloads:
+1. Pass a pre-constructed instance: `AddXxx(Xxx instance)`
+2. Use named parameters with an `out` reference: `AddXxx(out Xxx xxxOut, ...)`
+
+| Method | View Type | Notable Parameters |
+|--------|-----------|-------------------|
+| `AddBar` | `Bar` | `alignmentModes`, `orientation` |
+| `AddButton` | `Button` | `text`, `isDefault`, `noDecorations`, `noPadding`, `hotKeySpecifier` |
+| `AddCharMap` | `CharMap` | `selectedCodePoint`, `showGlyphWidths`, `startCodePoint`, `value`, `showUnicodeCategory` |
+| `AddCheckBox` | `CheckBox` | `text`, `checkedState`, `allowCheckedStateNone`, `hotKeySpecifier` |
+| `AddRadioButton` | `CheckBox` | Same as CheckBox but with `RadioStyle = true` |
+| `AddColorPicker` | `ColorPicker` | `selectedColor`, `style`, `text` |
+| `AddColorPicker16` | `ColorPicker16` | `selectedColor`, `boxWidth`, `boxHeight` |
+| `AddDatePicker` | `DatePicker` | `date`, `culture`, `text` |
+| `AddDialog` | `Dialog` | `title`, `buttons`, `buttonAlignment`, `buttonAlignmentModes`, `result` |
+| `AddDropDownList` | `DropDownList` | `source`, `text`, `readOnly`, `secret` |
+| `AddFileDialog` | `FileDialog` | `title`, `path`, `allowedTypes`, `allowsMultipleSelection`, `mustExist`, `openMode` |
+| `AddFrameView` | `FrameView` | `title` |
+| `AddGraphView` | `GraphView` | `cellSize`, `scrollOffset`, `graphColor`, `marginLeft`, `marginBottom`, `axisX`, `axisY` |
+| `AddHexView` | `HexView` | `source`, `readOnly`, `bytesPerLine`, `addressWidth`, `address` |
+| `AddLabel` | `Label` | `text`, `hotKeySpecifier` |
+| `AddLine` | `Line` | `length`, `orientation`, `lineStyle` |
+| `AddLinearRange<T>` | `LinearRange<T>` | `options`, `orientation`, `allowEmpty`, `rangeAllowSingle`, `showLegends`, `type`, `style`, ... |
+| `AddListView` | `ListView` | `source`, `selectedItem`, `value`, `showMarks`, `markMultiple` |
+| `AddMenu` | `Menu` | `menuItems`, `orientation`, `alignmentModes`, `superMenuItem`, `value` |
+| `AddMenuItem` | `MenuItem` | `commandText`, `helpText`, `action`, `key`, `subMenu`, ... |
+| `AddMenuBar` | `MenuBar` | `menus`, `key` |
+| `AddMenuBarItem` | `MenuBarItem` | `commandText`, `targetView`, `command`, `popoverMenu` |
+| `AddNumericUpDown<T>` | `NumericUpDownConstrained<T>` | `value`, `format`, `step`, `min`, `max` |
+| `AddOpenDialog` | `OpenDialog` | `title`, `path`, `allowedTypes`, `allowsMultipleSelection`, `mustExist`, `openMode` |
+| `AddOptionSelector` | `OptionSelector` | `text`, `orientation`, `styles`, `labels`, `focusedItem`, `value`, `values`, ... |
+| `AddOptionSelector<TEnum>` | `OptionSelector<TEnum>` | `text`, `orientation`, `styles`, `value`, ... |
+| `AddPopoverMenu` | `PopoverMenu` | `root`, `key`, `mouseFlags` |
+| `AddProgressBar` | `ProgressBar` | `text`, `fraction`, `format`, `style`, `segmentCharacter`, `bidirectionalMarquee` |
+| `AddSaveDialog` | `SaveDialog` | `title`, `path`, `allowedTypes`, `mustExist` |
+| `AddScrollBar` | `ScrollBar` | `orientation`, `increment`, `visibleContentSize`, `scrollableContentSize`, `value`, `visibilityMode` |
+| `AddScrollSlider` | `ScrollSlider` | `orientation`, `size`, `position`, `visibleContentSize`, `sliderPadding` |
+| `AddShortcut` | `Shortcut` | `text`, `key`, `action`, `helpText`, `bindKeyToApplication`, `command`, `targetView`, ... |
+| `AddSpinnerView` | `SpinnerView` | `style`, `autoSpin`, `spinDelay`, `spinBounce`, `spinReverse`, `sequence` |
+| `AddStatusBar` | `StatusBar` | `shortcuts`, `orientation`, `alignmentModes` |
+| `AddTab` | `Tab` | `text`, `view`, `displayText` |
+| `AddTabView` | `TabView` | `maxTabTextWidth`, `style`, `selectedTab`, `tabScrollOffset` |
+| `AddTableView` | `TableView` | `table`, `fullRowSelect`, `multiSelect`, `style`, `selectedRow`, `selectedColumn`, ... |
+| `AddTextField` | `TextField` | `text`, `readOnly`, `secret`, `insertionPoint`, ... |
+| `AddTextView` | `TextView` | `text`, `readOnly`, `multiline`, `wordWrap`, `tabWidth`, `scrollBars`, ... |
+| `AddTreeView` | `TreeView` | `multiSelect`, `allowLetterBasedNavigation`, `maxDepth`, `treeBuilder`, `style`, ... |
+| `AddWindow` | `Window` | `title`, `views` (auto-added children), returns `addedViews` via second out parameter |
+| `AddWizard` | `Wizard` | `title`, `currentStep`, `buttons`, `buttonAlignment`, `buttonAlignmentModes` |
+
+<details>
+<summary>Examples</summary>
+
+**AddButton**
 
 ```csharp
-viewBuilder.AddBar(new()); // => ViewBuilder<Window>
-
-viewBuilder.AddBar(
-    out Bar bar,
-    shortcuts: [
-        new Shortcut
-        {
-            Title = "Shortcut"
-        }
-    ],
-    alignmentMode: AlignmentModes.EndToStart,
-    orientation: Orientation.Vertical); // => ViewBuilder<Window>
-```
-
-**AddButton(...)**
-
-```csharp
-viewBuilder.AddButton(
-    new()
-    {
-        Text = "Button 1"
-    }); // => ViewBuilder<Window>
+viewBuilder.AddButton(new() { Text = "Button 1" });
 
 viewBuilder.AddButton(
     out Button button,
@@ -227,89 +396,97 @@ viewBuilder.AddButton(
     isDefault: false,
     noDecorations: false,
     noPadding: false,
-    hotKeySpecifier: new(';')) / => ViewBuilder<Window>
+    hotKeySpecifier: new(';'));
 ```
 
-**AddCheckBox(...)**
+**AddCheckBox / AddRadioButton**
 
 ```csharp
-viewBuilder.AddCheckBox(
-    new()
-    {
-        Text = "Checkbox 1"
-    }); // => ViewBuilder<Window>
-
 viewBuilder.AddCheckBox(
     out CheckBox checkBox,
-    text: "Checkbox 2",
+    text: "Checkbox 1",
     checkedState: CheckState.Checked,
-    allowCheckedStateNone: false, 
-    hotKeySpecifier: null); // => ViewBuilder<Window>
-```
+    allowCheckedStateNone: false);
 
-**AddRadioButton(...)**
-
-The same as AddCheckBox but with [RadioStyle](https://gui-cs.github.io/Terminal.Gui/api/Terminal.Gui.Views.CheckBox.RadioStyle.html#Terminal_Gui_Views_CheckBox_RadioStyle) set to true.
-
-Furthermore the `Text` parameter will default to `"RadioButton {parent.SubViews.Count}"` if not provided.
-
-```csharp
 viewBuilder.AddRadioButton(
     out CheckBox radioButton,
-    text: null, 
-    checkedState: CheckState.Checked, 
-    allowCheckedStateNone: false, 
-    hotKeySpecifier: null); // => ViewBuilder<Window>
+    text: "Option A",
+    checkedState: CheckState.Checked);
 ```
 
-**AddLabel(...)**
+**AddLabel**
 
 ```csharp
-// todo example
+viewBuilder.AddLabel(out Label label, text: "Hello, World!");
 ```
 
-**AddMenuBar(...)**
+**AddNumericUpDown**
 
 ```csharp
-viewBuilder.AddMenuBar(new()); // => ViewBuilder<Window>
-// todo example viewBuilder.AddMenuBar(out MenuBar menuBar, ... todo); // => ViewBuilder<Window>
+viewBuilder.AddNumericUpDown(
+    out NumericUpDownConstrained<double> nud,
+    value: 50.0,
+    step: 1.0,
+    format: "Value: {0}",
+    min: 0.0,
+    max: 100.0);
 ```
 
-**AddMenuBarItem(...)**
+**AddWindow**
 
 ```csharp
-viewBuilder.AddMenuBarItem(new()); // => ViewBuilder<Window>
-// todo example viewBuilder.AddMenuBarItem(out MenuBarItem menuBarItem, ... todo); // => ViewBuilder<Window>
+viewBuilder.AddWindow(new());
+
+viewBuilder.AddWindow(
+    out Window subWindow,
+    out List<View> addedViews,
+    views: [new Label() { Text = "Hello, World!" }]);
 ```
 
-**AddProgressBar(...)**
+**AddMenuBar**
+
 ```csharp
-viewBuilder.AddProgressBar(new()); // => ViewBuilder<Window>
-// todo example viewBuilder.AddProgressBar(out ProgressBar progressBar, ... todo); // => ViewBuilder<Window>
+viewBuilder.AddMenuBar(out MenuBar menuBar, menus: [
+    new MenuBarItem() { Title = "File" }
+]);
 ```
 
-**AddWindow(...)**
+**AddProgressBar**
+
 ```csharp
-viewBuilder.AddWindow(new()); // => ViewBuilder<Window>
-
-viewBuilder.AddWindow(out Window subWindow, out List<View> addedViews, [new Label()
-{
-     Text = "Hello, World!"
-}]);
-
-// As view instances are added using .Builder().Add(), rather than .Add
-// this is equal to:
-
-Window window = new();
-viewBuilder.AddWindow(window);
-window.Builder()
-    .Add(new Label() {
-     Text = "Hello, World!"
-    });
+viewBuilder.AddProgressBar(
+    out ProgressBar progressBar,
+    text: "Loading",
+    fraction: 0.5f,
+    style: ProgressBarStyle.Continuous);
 ```
+
+**AddTabView / AddTab**
+
+```csharp
+viewBuilder.AddTabView(out TabView tabView);
+tabView.Builder()
+    .AddTab(out Tab tab1, text: "Tab 1", view: new Label { Text = "Content 1" })
+    .AddTab(out Tab tab2, text: "Tab 2", view: new Label { Text = "Content 2" });
+```
+
+**AddOptionSelector**
+
+```csharp
+viewBuilder.AddOptionSelector(
+    out OptionSelector os,
+    labels: ["Option A", "Option B", "Option C"],
+    value: 0);
+
+viewBuilder.AddOptionSelector(
+    out OptionSelector<MyEnum> enumSelector,
+    value: MyEnum.FirstValue);
+```
+
+</details>
 
 ## MessageBox Extensions
-[MessageBoxExtensions.cs](/Extensions/ViewExtensions/MessageBoxExtensions.cs)
+[MessageBoxExtensions.cs](/Extensions/MessageBoxExtensions.cs)
 
 **static MessageBox.Confirm(...)**
 ```csharp
@@ -328,8 +505,8 @@ MessageBox.Error(App,
     title: "Error",
     okText: "Close");
 
-...
-catch(Exception e)
+// ...
+catch (Exception e)
 {
     MessageBox.Error(App, exception: e);
     MessageBox.Error(App,
@@ -342,15 +519,24 @@ catch(Exception e)
 ```csharp
 MessageBox.Info(App, "Done.");
 MessageBox.Info(App,
-    message: "Saved."
+    message: "Saved.",
     okText: "Proceed");
 ```
 
 ## ApplicationNavigationExtensions
 [ApplicationNavigationExtensions.cs](/Extensions/ApplicationNavigationExtensions.cs)
 
+**OnFocusChanged(...)**
+
+wrapper for `navigation.FocusedChanged += (_, args) => ...`
+
+```csharp
+app.Navigation.OnFocusChanged(args => ...);
+```
+
 **NavigatesTo(...)**
-Sets the targetView's Accepting handler to navigate to the given runnable.
+
+Sets the targetView's Activating handler to navigate to the given runnable.
 
 <details>
 <summary>Example using instance</summary>
@@ -365,7 +551,6 @@ settings.Builder()
 
 backButton.OnActivating(_ => App.RequestStop());
 app.Navigation.NavigatesTo<Window>(targetView: settingsBtn, runnableTo: settings, closeCurrent: false);
-
 ```
 </details>
 
@@ -405,21 +590,13 @@ public class MainWindow : Window
 {
     public MainWindow(IApplication app)
     {
-        ViewBuilder windowBuilder = this.Builder();
+        ViewBuilder<MainWindow> windowBuilder = this.Builder();
         windowBuilder.AddButton(out Button settingsBtn, "Go to settings Menu");
         app.Navigation.NavigatesTo(
-            targetView: settingsBtn, 
-            runnableFactory: () => new SettingsMenu(), 
+            targetView: settingsBtn,
+            runnableFactory: () => new SettingsMenu(),
             closeCurrent: false);
     }
 }
 ```
 </details>
-
-**OnFocusChanged(...)**
-
-wrapper for `view.FocusedChanged += (_, args) => ...`
-
-```csharp
-view.OnFocusChanged(args => ...);
-```

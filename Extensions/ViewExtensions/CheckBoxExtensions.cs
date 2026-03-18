@@ -1,46 +1,38 @@
-﻿using Terminal.Gui.App;
-using Terminal.Gui.ViewBase;
-using Terminal.Gui.Views;
+﻿using Terminal.Gui.Views;
 
 namespace TerminalGui.Extensions.Extensions.ViewExtensions;
 
-public static class CheckBoxExtensions {
+public static class CheckBoxExtensions
+{
     #region Checkbox
-    extension(CheckBox checkbox) {
+
+    extension(CheckBox checkbox)
+    {
         /// <summary>
-        /// Gets or sets the checked state of the checkbox control.
+        ///     Gets or sets the checked state of the checkbox control.
         /// </summary>
         /// <remarks>
-        /// The value is <see langword="true"/> if the checkbox is checked,
-        /// <see langword="false"/> if it is unchecked, or <see langword="null"/> if it is None.
-        /// of the checkbox accordingly.
+        ///     The value is <see langword="true" /> if the checkbox is checked,
+        ///     <see langword="false" /> if it is unchecked, or <see langword="null" /> if it is None.
+        ///     of the checkbox accordingly.
         /// </remarks>
         public bool? IsChecked {
-            get => checkbox.CheckedState.IsChecked;
-            set => checkbox.CheckedState = ConvertCheckState(value);
-        }
-
-        public View OnCheckedStateChanged(Action<EventArgs<CheckState>> callback)
-        {
-            checkbox.CheckedStateChanged += (_, e) => callback(e);
-            return checkbox;
-        }
-
-        public View OnCheckedStateChanging(Action<ResultEventArgs<CheckState>> callback)
-        {
-            checkbox.CheckedStateChanging += (_, e) => callback(e);
-            return checkbox;
+            get => checkbox.Value.IsChecked;
+            set => checkbox.Value = CheckState.ConvertCheckState(value);
         }
     }
-#endregion
+
+    #endregion
 
     #region CheckState
-    extension(CheckState) {
+
+    extension(CheckState)
+    {
         public static CheckState ConvertCheckState(bool? state) => state switch
         {
             true => CheckState.Checked,
             false => CheckState.UnChecked,
-            null => CheckState.None,
+            null => CheckState.None
         };
 
         public static bool? ConvertCheckState(CheckState state) => state switch
@@ -53,8 +45,8 @@ public static class CheckBoxExtensions {
 
     extension(CheckState checkState)
     {
-        public bool? IsChecked => ConvertCheckState(checkState);
+        public bool? IsChecked => CheckState.ConvertCheckState(checkState);
     }
 
-#endregion
+    #endregion
 }

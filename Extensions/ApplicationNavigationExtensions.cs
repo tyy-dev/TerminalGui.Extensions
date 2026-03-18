@@ -43,15 +43,14 @@ public static class ApplicationNavigationExtensions
         {
             ArgumentNullException.ThrowIfNull(navigation.App, nameof(navigation.App));
 
-            targetView.OnActivating(
-                _ => {
-                    if (closeCurrent)
-                    {
-                        navigation.App.RequestStop();
-                    }
+            targetView.OnActivating(_ => {
+                if (closeCurrent)
+                {
+                    navigation.App.RequestStop();
+                }
 
-                    runAction();
-                });
+                runAction();
+            });
             return targetView;
         }
 
