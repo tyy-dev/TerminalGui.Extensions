@@ -35,5 +35,20 @@ public static class TextFieldExtensions
             textField.TextChanging += (_, e) => callback(e);
             return textField;
         }
+
+        /// <summary>
+        ///     Subscribes to the <see cref="TextField.ValueChanging" /> event.
+        ///     Set <see cref="ValueChangingEventArgs{T}.Handled" /> to <see langword="true" /> to cancel the change.
+        /// </summary>
+        /// <param name="callback">
+        ///     The callback to invoke with the <see cref="ValueChangingEventArgs{T}" /> containing current and
+        ///     proposed values.
+        /// </param>
+        /// <returns>The <see cref="TextField" /> instance.</returns>
+        public TextField OnValueChanging(Action<ValueChangingEventArgs<string?>> callback)
+        {
+            textField.ValueChanging += (_, e) => callback(e);
+            return textField;
+        }
     }
 }

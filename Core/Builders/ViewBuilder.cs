@@ -99,7 +99,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         configureBeforeAdd?.Invoke(child);
 
         _lastChildAdded = child;
-        child = (TChild)parent.Add(child);
+        child = (TChild)parent.Add(child)!;
 
         addedChild = child;
         return this;
@@ -1615,7 +1615,10 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     /// </param>
     /// <param name="configureShortcuts">
     ///     A callback that receives a <see cref="ViewBuilder{TParent}" /> for the <see cref="StatusBar" />,
-    ///     allowing shortcuts to be added via <see cref="AddShortcut(string?, Key?, Action?, string?, bool?, Orientation?, View?, AlignmentModes?, Command?, View?, int?)" />.
+    ///     allowing shortcuts to be added via
+    ///     <see
+    ///         cref="AddShortcut(string?, Key?, Action?, string?, bool?, Orientation?, View?, AlignmentModes?, Command?, View?, int?)" />
+    ///     .
     /// </param>
     /// <param name="orientation">
     ///     <inheritdoc cref="Bar.Orientation" path="/summary" />
@@ -2232,6 +2235,55 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
             os.Value = value ?? os.Value;
         }
     );
+
+    #endregion
+
+    #region FlagSelector
+
+    /// <summary>
+    ///     Adds a <see cref="FlagSelector" /> to the parent view.
+    /// </summary>
+    /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="FlagSelector" /> instance</returns>
+    public ViewBuilder<TParent> AddFlagSelector(FlagSelector flagSelector) => Add(out _, flagSelector);
+
+    /// <inheritdoc cref="AddFlagSelector(FlagSelector)" path="/summary" />
+    /// <param name="flagSelectorOut">
+    ///     The newly added <see cref="FlagSelector" /> instance
+    /// </param>
+    /// <param name="value">
+    ///     <inheritdoc cref="FlagSelector.Value" path="/summary" />
+    /// </param>
+    /// <inheritdoc cref="AddFlagSelector(FlagSelector)" path="/returns" />
+    public ViewBuilder<TParent> AddFlagSelector(
+        out FlagSelector flagSelectorOut,
+        int? value = null
+    ) => Add(
+        out flagSelectorOut,
+        new(),
+        fs => fs.Value = value ?? fs.Value);
+
+    /// <summary>
+    ///     Adds a <see cref="FlagSelector{TFlagsEnum}" /> to the parent view.
+    /// </summary>
+    /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="FlagSelector{TFlagsEnum}" /> instance</returns>
+    public ViewBuilder<TParent> AddFlagSelector<TFlagsEnum>(FlagSelector<TFlagsEnum> flagSelector) where TFlagsEnum : struct, Enum
+        => Add(out _, flagSelector);
+
+    /// <inheritdoc cref="AddFlagSelector{TFlagsEnum}(FlagSelector{TFlagsEnum})" path="/summary" />
+    /// <param name="flagSelectorOut">
+    ///     The newly added <see cref="FlagSelector{TFlagsEnum}" /> instance
+    /// </param>
+    /// <param name="value">
+    ///     <inheritdoc cref="FlagSelector{TFlagsEnum}.Value" path="/summary" />
+    /// </param>
+    /// <inheritdoc cref="AddFlagSelector{TFlagsEnum}(FlagSelector{TFlagsEnum})" path="/returns" />
+    public ViewBuilder<TParent> AddFlagSelector<TFlagsEnum>(
+        out FlagSelector<TFlagsEnum> flagSelectorOut,
+        TFlagsEnum? value = null
+    ) where TFlagsEnum : struct, Enum => Add(
+        out flagSelectorOut,
+        new(),
+        fs => fs.Value = value ?? fs.Value);
 
     #endregion
 

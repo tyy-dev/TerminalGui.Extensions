@@ -66,6 +66,32 @@ public static class ListViewExtensions
         }
 
         /// <summary>
+        ///     Subscribes to the <see cref="ListView.ValueChanging" /> event.
+        ///     Set <see cref="ValueChangingEventArgs{T}.Handled" /> to <see langword="true" /> to cancel the change.
+        /// </summary>
+        /// <param name="callback">
+        ///     The callback to invoke with the <see cref="ValueChangingEventArgs{T}" /> containing current and
+        ///     proposed selected indices.
+        /// </param>
+        /// <returns>The <see cref="ListView" /> instance.</returns>
+        public ListView OnValueChanging(Action<ValueChangingEventArgs<int?>> callback)
+        {
+            listView.ValueChanging += (_, e) => callback(e);
+            return listView;
+        }
+
+        /// <summary>
+        ///     Subscribes to the <see cref="ListView.RowRender" /> event.
+        /// </summary>
+        /// <param name="callback">The callback to invoke with the <see cref="ListViewRowEventArgs" />.</param>
+        /// <returns>The <see cref="ListView" /> instance.</returns>
+        public ListView OnRowRender(Action<ListViewRowEventArgs> callback)
+        {
+            listView.RowRender += (_, e) => callback(e);
+            return listView;
+        }
+
+        /// <summary>
         ///     Configures scroll bar visibility for the <see cref="ListView" />.
         /// </summary>
         /// <param name="vertical">Whether to show the vertical scroll bar.</param>

@@ -39,5 +39,27 @@ public static class NumericUpDownExtensions
             numericUpDown.ValueChanging += (_, e) => callback(e);
             return numericUpDown;
         }
+
+        /// <summary>
+        ///     Subscribes to the <see cref="NumericUpDown{T}.FormatChanged" /> event.
+        /// </summary>
+        /// <param name="callback">The callback to invoke with the <see cref="EventArgs{T}" /> containing the new format string.</param>
+        /// <returns>The <see cref="NumericUpDown{T}" /> instance.</returns>
+        public NumericUpDown<T> OnFormatChanged(Action<EventArgs<string>> callback)
+        {
+            numericUpDown.FormatChanged += (_, e) => callback(e);
+            return numericUpDown;
+        }
+
+        /// <summary>
+        ///     Subscribes to the <see cref="NumericUpDown{T}.IncrementChanged" /> event.
+        /// </summary>
+        /// <param name="callback">The callback to invoke with the <see cref="EventArgs{T}" /> containing the new increment value.</param>
+        /// <returns>The <see cref="NumericUpDown{T}" /> instance.</returns>
+        public NumericUpDown<T> OnIncrementChanged(Action<EventArgs<T>> callback)
+        {
+            numericUpDown.IncrementChanged += (_, e) => callback(e);
+            return numericUpDown;
+        }
     }
 }

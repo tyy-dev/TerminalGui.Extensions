@@ -79,7 +79,6 @@ public class SettingsWindow : Window
            .AddTab(out _, text: "General", view: generalContent)
            .AddTab(out _, text: "Keybinds", view: keybindsContent);
 
-        // ── Status bar ───────────────────────────────────────────────
         builder.AddStatusBar(out _, statusBar => statusBar
            .AddShortcut(text: "Save", key: Key.S.WithCtrl)
            .AddShortcut(text: "Close", key: Key.Esc)
@@ -109,292 +108,43 @@ public class SettingsWindow : Window
 *Also refer to [Terminal.Gui Documentation](https://gui-cs.github.io/Terminal.Gui/)*
 
 <!-- TOC-->
-  - [View Extensions](#view-extensions)
-    - [CheckBox Extensions](#checkbox-extensions)
-      - [CheckState Extensions](#checkstate-extensions)
-    - [ListView Extensions](#listview-extensions)
-    - [NumericUpDown Extensions](#numericupdown-extensions)
-    - [OptionSelector Extensions](#optionselector-extensions)
-    - [TabView Extensions](#tabview-extensions)
-    - [TextField Extensions](#textfield-extensions)
-  - [Custom Views](#custom-views)
-    - [NumericUpDownConstrained\<T\>](#numericupdownconstrainedt)
   - [ViewBuilder](#viewbuilder)
     - [Notes](#notes)
     - [Properties](#properties)
     - [Core Methods](#core-methods)
     - [Add Methods](#add-methods)
+  - [View Extensions](#view-extensions)
+    - [Bar Extensions](#bar-extensions)
+    - [CheckBox Extensions](#checkbox-extensions)
+      - [CheckState Extensions](#checkstate-extensions)
+    - [ColorPicker Extensions](#colorpicker-extensions)
+    - [DatePicker Extensions](#datepicker-extensions)
+    - [FlagSelector Extensions](#flagselector-extensions)
+    - [HexView Extensions](#hexview-extensions)
+    - [Line Extensions](#line-extensions)
+    - [ListView Extensions](#listview-extensions)
+    - [Menu Extensions](#menu-extensions)
+    - [MenuBar Extensions](#menubar-extensions)
+    - [NumericUpDown Extensions](#numericupdown-extensions)
+    - [OptionSelector Extensions](#optionselector-extensions)
+    - [ScrollBar Extensions](#scrollbar-extensions)
+    - [ScrollSlider Extensions](#scrollslider-extensions)
+    - [PopoverMenu Extensions](#popovermenu-extensions)
+    - [Shortcut Extensions](#shortcut-extensions)
+    - [TabView Extensions](#tabview-extensions)
+    - [TextField Extensions](#textfield-extensions)
+    - [TableView Extensions](#tableview-extensions)
+    - [TextView Extensions](#textview-extensions)
+    - [Wizard Extensions](#wizard-extensions)
+  - [Custom Views](#custom-views)
+    - [NumericUpDownConstrained\<T\>](#numericupdownconstrainedt)
   - [MessageBox Extensions](#messagebox-extensions)
+  - [ApplicationExtensions](#applicationextensions)
   - [ApplicationNavigationExtensions](#applicationnavigationextensions)
+  - [ApplicationPopoverExtensions](#applicationpopoverextensions)
+  - [RunnableExtensions](#runnableextensions)
 <!-- TOC -->
 
-## View Extensions
-[ViewBaseExtensions.cs](/Extensions/ViewExtensions/ViewBaseExtensions.cs)
-
-**Builder()**
-
-Creates a `ViewBuilder<T>` instance for any View.
-
-```csharp
-ViewBuilder<Window> builder = view.Builder();
-builder.AddButton(out _, "Button Text");
-```
-
-**ConfigureWithBuilder(...)**
-
-Creates a builder via `Builder()` and passes it to the callback.
-
-```csharp
-view.ConfigureWithBuilder(viewBuilder =>
-{
-    viewBuilder.AddButton(out _, "Button Text");
-});
-```
-
-**WithLayout(...)**
-
-```csharp
-view.WithLayout(
-    width: Dim.Fill(),
-    height: Dim.Fill(),
-    x: Pos.Center(),
-    y: Pos.Center()
-);
-
-view.WithLayout(
-    width: Dim.Auto(),
-    height: Dim.Auto()
-);
-```
-
-**MakeScrollable()**
-
-Configures the view as scrollable content with a vertical scroll bar. Automatically tracks the content size based on subview positions.
-
-```csharp
-view.MakeScrollable();
-```
-
-**Command Event Wrappers**
-
-| Method | Wraps |
-|--------|-------|
-| `OnAccepted(callback)` | `view.Accepted += ...` |
-| `OnAccepting(callback)` | `view.Accepting += ...` |
-| `OnActivating(callback)` | `view.Activating += ...` |
-| `OnHandlingHotKey(callback)` | `view.HandlingHotKey += ...` |
-| `OnCommandNotBound(callback)` | `view.CommandNotBound += ...` |
-
-```csharp
-view.OnAccepting(args => ...);
-```
-
-**Keyboard Event Wrappers**
-
-| Method | Wraps |
-|--------|-------|
-| `OnKeyDown(callback)` | `view.KeyDown += ...` |
-| `OnKeyDownNotHandled(callback)` | `view.KeyDownNotHandled += ...` |
-
-**Mouse Event Wrappers**
-
-| Method | Wraps |
-|--------|-------|
-| `OnMouseEvent(callback)` | `view.MouseEvent += ...` |
-| `OnMouseEnter(callback)` | `view.MouseEnter += ...` |
-| `OnMouseLeave(callback)` | `view.MouseLeave += ...` |
-
-**Focus Event Wrappers**
-
-| Method | Wraps |
-|--------|-------|
-| `OnHasFocusChanged(callback)` | `view.HasFocusChanged += ...` |
-| `OnFocusedChanged(callback)` | `view.FocusedChanged += ...` |
-
-**Lifecycle Event Wrappers**
-
-| Method | Wraps |
-|--------|-------|
-| `OnInitialized(callback)` | `view.Initialized += ...` |
-| `OnDisposing(callback)` | `view.Disposing += ...` |
-
-**State Change Event Wrappers**
-
-| Method | Wraps |
-|--------|-------|
-| `OnVisibleChanged(callback)` | `view.VisibleChanged += ...` |
-| `OnEnabledChanged(callback)` | `view.EnabledChanged += ...` |
-| `OnTextChanged(callback)` | `view.TextChanged += ...` |
-| `OnTitleChanged(callback)` | `view.TitleChanged += ...` |
-
-**Layout Event Wrappers**
-
-| Method | Wraps |
-|--------|-------|
-| `OnSubViewsLaidOut(callback)` | `view.SubViewsLaidOut += ...` |
-| `OnFrameChanged(callback)` | `view.FrameChanged += ...` |
-
-**Drawing Event Wrappers**
-
-| Method | Wraps |
-|--------|-------|
-| `OnDrawComplete(callback)` | `view.DrawComplete += ...` |
-| `OnDrawingContent(callback)` | `view.DrawingContent += ...` |
-
-### CheckBox Extensions
-[CheckBoxExtensions.cs](/Extensions/ViewExtensions/CheckBoxExtensions.cs)
-
-**IsChecked**
-```csharp
-bool isChecked = checkbox.IsChecked; // Equal to checkbox.CheckedState == CheckState.Checked;
-checkbox.IsChecked = true; // Equal to checkbox.CheckedState = CheckState.Checked;
-```
-
-**Event Wrappers**
-
-| Method | Equivalent |
-|--------|-----------|
-| `OnValueChanged(callback)` | `checkbox.ValueChanged += ...` |
-| `OnValueChanging(callback)` | `checkbox.ValueChanging += ...` |
-
-```csharp
-checkbox.OnValueChanged(e => Console.WriteLine($"Changed from {e.OldValue} to {e.NewValue}"));
-checkbox.OnValueChanging(e => {
-    if (e.NewValue == CheckState.None)
-        e.Handled = true; // cancel the change
-});
-```
-
-#### CheckState Extensions
-[CheckBoxExtensions.cs](/Extensions/ViewExtensions/CheckBoxExtensions.cs)
-
-**static ConvertCheckState(...)**
-```csharp
-CheckState state1 = CheckState.ConvertCheckState(true);  // CheckState.Checked
-CheckState state2 = CheckState.ConvertCheckState(false); // CheckState.UnChecked
-CheckState state3 = CheckState.ConvertCheckState(null);  // CheckState.None
-```
-
-```csharp
-bool? value1 = CheckState.ConvertCheckState(CheckState.Checked);   // true
-bool? value2 = CheckState.ConvertCheckState(CheckState.UnChecked); // false
-bool? value3 = CheckState.ConvertCheckState(CheckState.None);      // null
-```
-
-**IsChecked**
-```csharp
-CheckState state = CheckState.UnChecked;
-bool? isChecked = state.IsChecked; // false
-```
-
-### ListView Extensions
-[ListViewExtensions.cs](/Extensions/ViewExtensions/ListViewExtensions.cs)
-
-**GetSelectedItem\<T\>(...)**
-
-Returns the currently selected item from the source list, or `default` when nothing is selected.
-
-```csharp
-IList<string> items = ["Apple", "Banana", "Cherry"];
-string? selected = listView.GetSelectedItem(items);
-```
-
-**WithScrollBars(...)**
-
-```csharp
-listView.WithScrollBars(vertical: true, horizontal: false);
-```
-
-| Method | Wraps |
-|--------|-------|
-| `OnValueChanged(callback)` | `listView.ValueChanged += ...` |
-| `OnCollectionChanged(callback)` | `listView.CollectionChanged += ...` |
-| `OnSourceChanged(callback)` | `listView.SourceChanged += ...` |
-
-### NumericUpDown Extensions
-[NumericUpDownExtensions.cs](/Extensions/ViewExtensions/NumericUpDownExtensions.cs)
-
-| Method | Wraps |
-|--------|-------|
-| `OnValueChanged(callback)` | `numericUpDown.ValueChanged += ...` |
-| `OnValueChanging(callback)` | `numericUpDown.ValueChanging += ...` |
-
-```csharp
-numericUpDown.OnValueChanged(e => Console.WriteLine($"New: {e.NewValue}"));
-numericUpDown.OnValueChanging(e => {
-    if (e.NewValue < 0) e.Handled = true; // cancel negative values
-});
-```
-
-### OptionSelector Extensions
-[OptionSelectorExtensions.cs](/Extensions/ViewExtensions/OptionSelectorExtensions.cs)
-
-**OptionSelector**
-
-| Method | Wraps |
-|--------|-------|
-| `OnValueChanged(callback)` | `optionSelector.ValueChanged += ...` |
-| `OnValueChanging(callback)` | `optionSelector.ValueChanging += ...` |
-
-**OptionSelector\<TEnum\>**
-
-| Method | Wraps |
-|--------|-------|
-| `OnValueChanged(callback)` | `optionSelector.ValueChanged += ...` |
-
-### TabView Extensions
-[TabViewExtensions.cs](/Extensions/ViewExtensions/TabViewExtensions.cs)
-
-| Method | Wraps |
-|--------|-------|
-| `OnSelectedTabChanged(callback)` | `tabView.SelectedTabChanged += ...` |
-| `OnTabClicked(callback)` | `tabView.TabClicked += ...` |
-
-### TextField Extensions
-[TextFieldExtensions.cs](/Extensions/ViewExtensions/TextFieldExtensions.cs)
-
-| Method | Wraps |
-|--------|-------|
-| `OnValueChanged(callback)` | `textField.ValueChanged += ...` |
-| `OnTextChanging(callback)` | `textField.TextChanging += ...` |
-
-```csharp
-textField.OnValueChanged(e => Console.WriteLine($"New: {e.NewValue}"));
-textField.OnTextChanging(e => {
-    if (e.Result?.Contains("bad") == true) e.Result = null; // cancel
-});
-```
-
-## Custom Views
-
-### NumericUpDownConstrained\<T\>
-[NumericUpDownConstrained.cs](/Core/Views/NumericUpDownConstrained.cs)
-
-A `NumericUpDown<T>` subclass with dynamically settable `Min` and `Max` constraints. The constraints are enforced via the `ValueChanging` event and update immediately when the properties change.
-
-Setting `Min` or `Max` to `null` disables the corresponding constraint.
-
-```csharp
-var nud = new NumericUpDownConstrained<int> { Min = 0, Max = 100, Value = 50 };
-
-// Constraints are dynamic — update them at any time:
-nud.Max = 200;
-nud.Min = null; // remove lower bound
-```
-
-The `AddNumericUpDown(...)` builder method creates a `NumericUpDownConstrained<T>` by default:
-
-```csharp
-viewBuilder.AddNumericUpDown(
-    out NumericUpDownConstrained<double> nud,
-    value: 10.0,
-    step: 0.5,
-    min: 0.0,
-    max: 100.0);
-
-// Later, adjust the constraint dynamically:
-nud.Max = newCapacity;
-```
 
 ## ViewBuilder
 [ViewBuilder.cs](/Core/Builders/ViewBuilder.cs)
@@ -602,6 +352,497 @@ viewBuilder.AddOptionSelector(
 
 </details>
 
+## View Extensions
+[ViewBaseExtensions.cs](/Extensions/ViewExtensions/ViewBaseExtensions.cs)
+
+**Builder()**
+
+Creates a `ViewBuilder<T>` instance for any View.
+
+```csharp
+ViewBuilder<Window> builder = view.Builder();
+builder.AddButton(out _, "Button Text");
+```
+
+**ConfigureWithBuilder(...)**
+
+Creates a builder via `Builder()` and passes it to the callback.
+
+```csharp
+view.ConfigureWithBuilder(viewBuilder =>
+{
+    viewBuilder.AddButton(out _, "Button Text");
+});
+```
+
+**WithLayout(...)**
+
+```csharp
+view.WithLayout(
+    width: Dim.Fill(),
+    height: Dim.Fill(),
+    x: Pos.Center(),
+    y: Pos.Center()
+);
+
+view.WithLayout(
+    width: Dim.Auto(),
+    height: Dim.Auto()
+);
+```
+
+**WithFill(...)**
+
+Sets both width and height to `Dim.Fill()`.
+
+```csharp
+view.WithFill();
+view.WithFill(widthAdjust: -2, heightAdjust: -1);
+```
+
+**WithAuto(...)**
+
+Sets both width and height to `Dim.Auto()`.
+
+```csharp
+view.WithAuto();
+view.WithAuto(widthAdjust: 2);
+```
+
+**WithFillAuto(...)**
+
+```csharp
+view.WithFillAuto();
+view.WithFillAuto(widthAdjust: -1);
+```
+
+**MakeScrollable()**
+
+Configures the view as scrollable content with a vertical scroll bar. Automatically tracks the content size based on subview positions.
+
+```csharp
+view.MakeScrollable();
+```
+
+**Subview Search**
+
+`FindSubView<T>()` — Finds the first direct child of the given type.
+
+`FindAllSubViews<T>()` — Recursively finds all descendants of the given type.
+
+```csharp
+Button? btn = view.FindSubView<Button>();
+IEnumerable<Label> allLabels = view.FindAllSubViews<Label>();
+```
+
+**Command Event Wrappers**
+
+| Method | Wraps |
+|--------|-------|
+| `OnAccepted(callback)` | `view.Accepted += ...` |
+| `OnAccepting(callback)` | `view.Accepting += ...` |
+| `OnActivating(callback)` | `view.Activating += ...` |
+| `OnActivated(callback)` | `view.Activated += ...` |
+| `OnHandlingHotKey(callback)` | `view.HandlingHotKey += ...` |
+| `OnHotKeyCommand(callback)` | `view.HotKeyCommand += ...` |
+| `OnCommandNotBound(callback)` | `view.CommandNotBound += ...` |
+
+```csharp
+view.OnAccepting(args => ...);
+```
+
+**Keyboard Event Wrappers**
+
+| Method | Wraps |
+|--------|-------|
+| `OnKeyDown(callback)` | `view.KeyDown += ...` |
+| `OnKeyDownNotHandled(callback)` | `view.KeyDownNotHandled += ...` |
+
+**Mouse Event Wrappers**
+
+| Method | Wraps |
+|--------|-------|
+| `OnMouseEvent(callback)` | `view.MouseEvent += ...` |
+| `OnMouseEnter(callback)` | `view.MouseEnter += ...` |
+| `OnMouseLeave(callback)` | `view.MouseLeave += ...` |
+| `OnMouseStateChanged(callback)` | `view.MouseStateChanged += ...` |
+| `OnMouseHoldRepeatChanged(callback)` | `view.MouseHoldRepeatChanged += ...` |
+| `OnMouseHoldRepeatChanging(callback)` | `view.MouseHoldRepeatChanging += ...` |
+
+**Focus Event Wrappers**
+
+| Method | Wraps |
+|--------|-------|
+| `OnHasFocusChanged(callback)` | `view.HasFocusChanged += ...` |
+| `OnHasFocusChanging(callback)` | `view.HasFocusChanging += ...` |
+| `OnFocusedChanged(callback)` | `view.FocusedChanged += ...` |
+| `OnAdvancingFocus(callback)` | `view.AdvancingFocus += ...` |
+| `OnCanFocusChanged(callback)` | `view.CanFocusChanged += ...` |
+
+**Lifecycle Event Wrappers**
+
+| Method | Wraps |
+|--------|-------|
+| `OnInitialized(callback)` | `view.Initialized += ...` |
+| `OnDisposing(callback)` | `view.Disposing += ...` |
+| `OnRemoved(callback)` | `view.Removed += ...` |
+| `OnSuperViewChanged(callback)` | `view.SuperViewChanged += ...` |
+| `OnSuperViewChanging(callback)` | `view.SuperViewChanging += ...` |
+| `OnSubViewAdded(callback)` | `view.SubViewAdded += ...` |
+| `OnSubViewRemoved(callback)` | `view.SubViewRemoved += ...` |
+
+**State Change Event Wrappers**
+
+| Method | Wraps |
+|--------|-------|
+| `OnVisibleChanged(callback)` | `view.VisibleChanged += ...` |
+| `OnVisibleChanging(callback)` | `view.VisibleChanging += ...` |
+| `OnEnabledChanged(callback)` | `view.EnabledChanged += ...` |
+| `OnTextChanged(callback)` | `view.TextChanged += ...` |
+| `OnTitleChanged(callback)` | `view.TitleChanged += ...` |
+| `OnTitleChanging(callback)` | `view.TitleChanging += ...` |
+| `OnBorderStyleChanged(callback)` | `view.BorderStyleChanged += ...` |
+| `OnHotKeyChanged(callback)` | `view.HotKeyChanged += ...` |
+| `OnSchemeChanged(callback)` | `view.SchemeChanged += ...` |
+| `OnSchemeChanging(callback)` | `view.SchemeChanging += ...` |
+| `OnSchemeNameChanged(callback)` | `view.SchemeNameChanged += ...` |
+| `OnSchemeNameChanging(callback)` | `view.SchemeNameChanging += ...` |
+| `OnContentSizeChanged(callback)` | `view.ContentSizeChanged += ...` |
+| `OnContentSizeChanging(callback)` | `view.ContentSizeChanging += ...` |
+
+**Layout Event Wrappers**
+
+| Method | Wraps |
+|--------|-------|
+| `OnSubViewsLaidOut(callback)` | `view.SubViewsLaidOut += ...` |
+| `OnSubViewLayout(callback)` | `view.SubViewLayout += ...` |
+| `OnFrameChanged(callback)` | `view.FrameChanged += ...` |
+| `OnHeightChanged(callback)` | `view.HeightChanged += ...` |
+| `OnHeightChanging(callback)` | `view.HeightChanging += ...` |
+| `OnWidthChanged(callback)` | `view.WidthChanged += ...` |
+| `OnWidthChanging(callback)` | `view.WidthChanging += ...` |
+
+**Drawing Event Wrappers**
+
+| Method | Wraps |
+|--------|-------|
+| `OnDrawComplete(callback)` | `view.DrawComplete += ...` |
+| `OnDrawingContent(callback)` | `view.DrawingContent += ...` |
+| `OnDrawingSubViews(callback)` | `view.DrawingSubViews += ...` |
+| `OnDrawingText(callback)` | `view.DrawingText += ...` |
+| `OnDrewText(callback)` | `view.DrewText += ...` |
+| `OnClearingViewport(callback)` | `view.ClearingViewport += ...` |
+| `OnClearedViewport(callback)` | `view.ClearedViewport += ...` |
+| `OnViewportChanged(callback)` | `view.ViewportChanged += ...` |
+| `OnGettingAttributeForRole(callback)` | `view.GettingAttributeForRole += ...` |
+| `OnGettingScheme(callback)` | `view.GettingScheme += ...` |
+
+### Bar Extensions
+[BarExtensions.cs](/Extensions/ViewExtensions/BarExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnOrientationChanged(callback)` | `bar.OrientationChanged += ...` |
+| `OnOrientationChanging(callback)` | `bar.OrientationChanging += ...` |
+
+### CheckBox Extensions
+[CheckBoxExtensions.cs](/Extensions/ViewExtensions/CheckBoxExtensions.cs)
+
+**IsChecked**
+```csharp
+bool isChecked = checkbox.IsChecked; // Equal to checkbox.CheckedState == CheckState.Checked;
+checkbox.IsChecked = true; // Equal to checkbox.CheckedState = CheckState.Checked;
+```
+
+**Event Wrappers**
+
+| Method | Equivalent |
+|--------|-----------|
+| `OnValueChanged(callback)` | `checkbox.ValueChanged += ...` |
+| `OnValueChanging(callback)` | `checkbox.ValueChanging += ...` |
+
+```csharp
+checkbox.OnValueChanged(e => Console.WriteLine($"Changed from {e.OldValue} to {e.NewValue}"));
+checkbox.OnValueChanging(e => {
+    if (e.NewValue == CheckState.None)
+        e.Handled = true; // cancel the change
+});
+```
+
+#### CheckState Extensions
+[CheckBoxExtensions.cs](/Extensions/ViewExtensions/CheckBoxExtensions.cs)
+
+**static ConvertCheckState(...)**
+```csharp
+CheckState state1 = CheckState.ConvertCheckState(true);  // CheckState.Checked
+CheckState state2 = CheckState.ConvertCheckState(false); // CheckState.UnChecked
+CheckState state3 = CheckState.ConvertCheckState(null);  // CheckState.None
+```
+
+```csharp
+bool? value1 = CheckState.ConvertCheckState(CheckState.Checked);   // true
+bool? value2 = CheckState.ConvertCheckState(CheckState.UnChecked); // false
+bool? value3 = CheckState.ConvertCheckState(CheckState.None);      // null
+```
+
+**IsChecked**
+```csharp
+CheckState state = CheckState.UnChecked;
+bool? isChecked = state.IsChecked; // false
+```
+
+### ColorPicker Extensions
+[ColorPickerExtensions.cs](/Extensions/ViewExtensions/ColorPickerExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnValueChanged(callback)` | `colorPicker.ValueChanged += ...` |
+| `OnValueChanging(callback)` | `colorPicker.ValueChanging += ...` |
+
+### DatePicker Extensions
+[DatePickerExtensions.cs](/Extensions/ViewExtensions/DatePickerExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnValueChanged(callback)` | `datePicker.ValueChanged += ...` |
+| `OnValueChanging(callback)` | `datePicker.ValueChanging += ...` |
+
+### FlagSelector Extensions
+[FlagSelectorExtensions.cs](/Extensions/ViewExtensions/FlagSelectorExtensions.cs)
+
+**FlagSelector**
+
+| Method | Wraps |
+|--------|-------|
+| `OnValueChanged(callback)` | `flagSelector.ValueChanged += ...` |
+| `OnValueChanging(callback)` | `flagSelector.ValueChanging += ...` |
+| `OnOrientationChanged(callback)` | `flagSelector.OrientationChanged += ...` |
+| `OnOrientationChanging(callback)` | `flagSelector.OrientationChanging += ...` |
+
+**FlagSelector\<TFlagsEnum\>**
+
+| Method | Wraps |
+|--------|-------|
+| `OnValueChanged(callback)` | `flagSelector.ValueChanged += ...` |
+
+### HexView Extensions
+[HexViewExtensions.cs](/Extensions/ViewExtensions/HexViewExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnEdited(callback)` | `hexView.Edited += ...` |
+| `OnPositionChanged(callback)` | `hexView.PositionChanged += ...` |
+
+### Line Extensions
+[LineExtensions.cs](/Extensions/ViewExtensions/LineExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnOrientationChanged(callback)` | `line.OrientationChanged += ...` |
+| `OnOrientationChanging(callback)` | `line.OrientationChanging += ...` |
+
+### ListView Extensions
+[ListViewExtensions.cs](/Extensions/ViewExtensions/ListViewExtensions.cs)
+
+**GetSelectedItem\<T\>(...)**
+
+Returns the currently selected item from the source list, or `default` when nothing is selected.
+
+```csharp
+IList<string> items = ["Apple", "Banana", "Cherry"];
+string? selected = listView.GetSelectedItem(items);
+```
+
+**WithScrollBars(...)**
+
+```csharp
+listView.WithScrollBars(vertical: true, horizontal: false);
+```
+
+| Method | Wraps |
+|--------|-------|
+| `OnValueChanged(callback)` | `listView.ValueChanged += ...` |
+| `OnValueChanging(callback)` | `listView.ValueChanging += ...` |
+| `OnCollectionChanged(callback)` | `listView.CollectionChanged += ...` |
+| `OnSourceChanged(callback)` | `listView.SourceChanged += ...` |
+| `OnRowRender(callback)` | `listView.RowRender += ...` |
+
+### Menu Extensions
+[MenuExtensions.cs](/Extensions/ViewExtensions/MenuExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnSelectedMenuItemChanged(callback)` | `menu.SelectedMenuItemChanged += ...` |
+| `OnValueChanged(callback)` | `menu.ValueChanged += ...` |
+| `OnValueChanging(callback)` | `menu.ValueChanging += ...` |
+
+### MenuBar Extensions
+[MenuBarExtensions.cs](/Extensions/ViewExtensions/MenuBarExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnKeyChanged(callback)` | `menuBar.KeyChanged += ...` |
+
+### NumericUpDown Extensions
+[NumericUpDownExtensions.cs](/Extensions/ViewExtensions/NumericUpDownExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnValueChanged(callback)` | `numericUpDown.ValueChanged += ...` |
+| `OnValueChanging(callback)` | `numericUpDown.ValueChanging += ...` |
+| `OnFormatChanged(callback)` | `numericUpDown.FormatChanged += ...` |
+| `OnIncrementChanged(callback)` | `numericUpDown.IncrementChanged += ...` |
+
+```csharp
+numericUpDown.OnValueChanged(e => Console.WriteLine($"New: {e.NewValue}"));
+numericUpDown.OnValueChanging(e => {
+    if (e.NewValue < 0) e.Handled = true; // cancel negative values
+});
+```
+
+### OptionSelector Extensions
+[OptionSelectorExtensions.cs](/Extensions/ViewExtensions/OptionSelectorExtensions.cs)
+
+**OptionSelector**
+
+| Method | Wraps |
+|--------|-------|
+| `OnValueChanged(callback)` | `optionSelector.ValueChanged += ...` |
+| `OnValueChanging(callback)` | `optionSelector.ValueChanging += ...` |
+| `OnOrientationChanged(callback)` | `optionSelector.OrientationChanged += ...` |
+| `OnOrientationChanging(callback)` | `optionSelector.OrientationChanging += ...` |
+
+**OptionSelector\<TEnum\>**
+
+| Method | Wraps |
+|--------|-------|
+| `OnValueChanged(callback)` | `optionSelector.ValueChanged += ...` |
+
+### ScrollBar Extensions
+[ScrollBarExtensions.cs](/Extensions/ViewExtensions/ScrollBarExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnOrientationChanged(callback)` | `scrollBar.OrientationChanged += ...` |
+| `OnOrientationChanging(callback)` | `scrollBar.OrientationChanging += ...` |
+| `OnScrollableContentSizeChanged(callback)` | `scrollBar.ScrollableContentSizeChanged += ...` |
+| `OnScrolled(callback)` | `scrollBar.Scrolled += ...` |
+| `OnSliderPositionChanged(callback)` | `scrollBar.SliderPositionChanged += ...` |
+| `OnValueChanged(callback)` | `scrollBar.ValueChanged += ...` |
+| `OnValueChanging(callback)` | `scrollBar.ValueChanging += ...` |
+
+### ScrollSlider Extensions
+[ScrollSliderExtensions.cs](/Extensions/ViewExtensions/ScrollSliderExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnOrientationChanged(callback)` | `scrollSlider.OrientationChanged += ...` |
+| `OnOrientationChanging(callback)` | `scrollSlider.OrientationChanging += ...` |
+| `OnPositionChanged(callback)` | `scrollSlider.PositionChanged += ...` |
+| `OnPositionChanging(callback)` | `scrollSlider.PositionChanging += ...` |
+| `OnScrolled(callback)` | `scrollSlider.Scrolled += ...` |
+
+### PopoverMenu Extensions
+[PopoverMenuExtensions.cs](/Extensions/ViewExtensions/PopoverMenuExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnKeyChanged(callback)` | `popoverMenu.KeyChanged += ...` |
+
+### Shortcut Extensions
+[ShortcutExtensions.cs](/Extensions/ViewExtensions/ShortcutExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnOrientationChanged(callback)` | `shortcut.OrientationChanged += ...` |
+| `OnOrientationChanging(callback)` | `shortcut.OrientationChanging += ...` |
+
+### TabView Extensions
+[TabViewExtensions.cs](/Extensions/ViewExtensions/TabViewExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnSelectedTabChanged(callback)` | `tabView.SelectedTabChanged += ...` |
+| `OnTabClicked(callback)` | `tabView.TabClicked += ...` |
+
+### TextField Extensions
+[TextFieldExtensions.cs](/Extensions/ViewExtensions/TextFieldExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnValueChanged(callback)` | `textField.ValueChanged += ...` |
+| `OnValueChanging(callback)` | `textField.ValueChanging += ...` |
+| `OnTextChanging(callback)` | `textField.TextChanging += ...` |
+
+```csharp
+textField.OnValueChanged(e => Console.WriteLine($"New: {e.NewValue}"));
+textField.OnTextChanging(e => {
+    if (e.Result?.Contains("bad") == true) e.Result = null; // cancel
+});
+```
+
+### TableView Extensions
+[TableViewExtensions.cs](/Extensions/ViewExtensions/TableViewExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnCellActivated(callback)` | `tableView.CellActivated += ...` |
+| `OnCellToggled(callback)` | `tableView.CellToggled += ...` |
+| `OnSelectedCellChanged(callback)` | `tableView.SelectedCellChanged += ...` |
+
+### TextView Extensions
+[TextViewExtensions.cs](/Extensions/ViewExtensions/TextViewExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnContentsChanged(callback)` | `textView.ContentsChanged += ...` |
+| `OnDrawNormalColor(callback)` | `textView.DrawNormalColor += ...` |
+| `OnDrawReadOnlyColor(callback)` | `textView.DrawReadOnlyColor += ...` |
+| `OnDrawSelectionColor(callback)` | `textView.DrawSelectionColor += ...` |
+| `OnDrawUsedColor(callback)` | `textView.DrawUsedColor += ...` |
+| `OnUnwrappedCursorPositionChanged(callback)` | `textView.UnwrappedCursorPositionChanged += ...` |
+
+### Wizard Extensions
+[WizardExtensions.cs](/Extensions/ViewExtensions/WizardExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnMovingBack(callback)` | `wizard.MovingBack += ...` |
+| `OnMovingNext(callback)` | `wizard.MovingNext += ...` |
+| `OnStepChanged(callback)` | `wizard.StepChanged += ...` |
+| `OnStepChanging(callback)` | `wizard.StepChanging += ...` |
+
+## Custom Views
+
+### NumericUpDownConstrained\<T\>
+[NumericUpDownConstrained.cs](/Core/Views/NumericUpDownConstrained.cs)
+
+A `NumericUpDown<T>` subclass with dynamically settable `Min` and `Max` constraints. The constraints are enforced via the `ValueChanging` event and update immediately when the properties change.
+
+Setting `Min` or `Max` to `null` disables the corresponding constraint.
+
+```csharp
+var nud = new NumericUpDownConstrained<int> { Min = 0, Max = 100, Value = 50 };
+
+// Constraints are dynamic — update them at any time:
+nud.Max = 200;
+nud.Min = null; // remove lower bound
+```
+
+The `AddNumericUpDown(...)` builder method creates a `NumericUpDownConstrained<T>` by default:
+
+```csharp
+viewBuilder.AddNumericUpDown(
+    out NumericUpDownConstrained<double> nud,
+    value: 10.0,
+    step: 0.5,
+    min: 0.0,
+    max: 100.0);
+
+// Later, adjust the constraint dynamically:
+nud.Max = newCapacity;
+```
+
 ## MessageBox Extensions
 [MessageBoxExtensions.cs](/Extensions/MessageBoxExtensions.cs)
 
@@ -640,6 +881,53 @@ MessageBox.Info(App,
     okText: "Proceed");
 ```
 
+## ApplicationExtensions
+[ApplicationExtensions.cs](/Extensions/ApplicationExtensions.cs)
+
+**Session Stack**
+
+Convenience methods for inspecting the `IApplication.SessionStack`.
+
+| Member | Description |
+|--------|-------------|
+| `SessionCount` | The number of active sessions. |
+| `HasActiveSessions` | Whether the session stack has any active sessions. |
+| `GetCurrentSession()` | Peeks at the top session without removing it. |
+| `FindSession(IRunnable)` | Finds a session by its runnable. |
+
+```csharp
+public static Dialog? GetDialog()
+    => Application.GetCurrentSession() is {} token
+        ? token.Runnable as Dialog
+        : null;
+
+MessageBox.Info("Hello, World");
+Dialog? messageBox = GetDialog();
+```
+
+```csharp
+int count = app.SessionCount;
+bool hasActive = app.HasActiveSessions;
+
+var myRunnable = ...
+SessionToken? found = app.FindSession(myRunnable);
+```
+
+**Event Wrappers**
+
+| Method | Wraps |
+|--------|-------|
+| `OnInitializedChanged(callback)` | `app.InitializedChanged += ...` |
+| `OnIteration(callback)` | `app.Iteration += ...` |
+| `OnSessionBegun(callback)` | `app.SessionBegun += ...` |
+| `OnSessionEnded(callback)` | `app.SessionEnded += ...` |
+| `OnScreenChanged(callback)` | `app.ScreenChanged += ...` |
+
+```csharp
+app.OnSessionBegun(e => Console.WriteLine($"Session started: {e.State.Runnable}"));
+app.OnScreenChanged(e => Console.WriteLine($"New size: {e.Value}"));
+```
+
 ## ApplicationNavigationExtensions
 [ApplicationNavigationExtensions.cs](/Extensions/ApplicationNavigationExtensions.cs)
 
@@ -650,7 +938,7 @@ wrapper for `navigation.FocusedChanged += (_, args) => ...`
 ```csharp
 app.Navigation.OnFocusChanged(args => ...);
 ```
-
+<br>DONT USE [WILL BE REMOVED]</br>
 **NavigatesTo(...)**
 
 Sets the targetView's Activating handler to navigate to the given runnable.
@@ -717,3 +1005,31 @@ public class MainWindow : Window
 }
 ```
 </details>
+
+## ApplicationPopoverExtensions
+[ApplicationPopoverExtensions.cs](/Extensions/ApplicationPopoverExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnPopoverRegistered(callback)` | `popover.PopoverRegistered += ...` |
+| `OnPopoverUnregistered(callback)` | `popover.PopoverDeRegistered += ...` |
+
+```csharp
+app.Popovers.OnPopoverRegistered(e => Console.WriteLine($"Registered: {e.Value}"));
+```
+
+## RunnableExtensions
+[RunnableExtensions.cs](/Extensions/RunnableExtensions.cs)
+
+| Method | Wraps |
+|--------|-------|
+| `OnRunningChanged(callback)` | `runnable.IsRunningChanged += ...` |
+| `OnRunningChanging(callback)` | `runnable.IsRunningChanging += ...` |
+| `OsModalChanged(callback)` | `runnable.IsModalChanged += ...` |
+
+````csharp
+window.OnIsRunningChanged(e => Console.WriteLine($"Running: {e.Value}"));
+window.OnIsRunningChanging(e => {
+    if (!canStop) e.Cancel = true;
+});
+````

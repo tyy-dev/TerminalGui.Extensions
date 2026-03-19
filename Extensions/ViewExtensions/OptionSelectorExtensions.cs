@@ -1,4 +1,5 @@
 using Terminal.Gui.App;
+using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 
 namespace TerminalGui.Extensions.Extensions.ViewExtensions;
@@ -37,6 +38,29 @@ public static class OptionSelectorExtensions
         public OptionSelector OnValueChanging(Action<ValueChangingEventArgs<int?>> callback)
         {
             optionSelector.ValueChanging += (_, e) => callback(e);
+            return optionSelector;
+        }
+
+        /// <summary>
+        ///     Subscribes to the <see cref="SelectorBase.OrientationChanged" /> event.
+        /// </summary>
+        /// <param name="callback">The callback to invoke with the <see cref="EventArgs{T}" /> containing the new <see cref="Orientation" />.</param>
+        /// <returns>The <see cref="OptionSelector" /> instance.</returns>
+        public OptionSelector OnOrientationChanged(Action<EventArgs<Orientation>> callback)
+        {
+            optionSelector.OrientationChanged += (_, e) => callback(e);
+            return optionSelector;
+        }
+
+        /// <summary>
+        ///     Subscribes to the <see cref="SelectorBase.OrientationChanging" /> event.
+        ///     Set <see cref="CancelEventArgs{T}.Cancel" /> to <see langword="true" /> to cancel the change.
+        /// </summary>
+        /// <param name="callback">The callback to invoke with the <see cref="CancelEventArgs{T}" /> containing the proposed <see cref="Orientation" />.</param>
+        /// <returns>The <see cref="OptionSelector" /> instance.</returns>
+        public OptionSelector OnOrientationChanging(Action<CancelEventArgs<Orientation>> callback)
+        {
+            optionSelector.OrientationChanging += (_, e) => callback(e);
             return optionSelector;
         }
     }
