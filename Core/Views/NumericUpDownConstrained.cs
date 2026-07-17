@@ -10,7 +10,7 @@ namespace TerminalGui.Extensions.Core.Views;
 /// <typeparam name="T">The numeric type.</typeparam>
 public class NumericUpDownConstrained<T> : NumericUpDown<T> where T : notnull
 {
-    private static readonly Comparer<T> _comparer = Comparer<T>.Default;
+    private static readonly Comparer<T> Comparer = Comparer<T>.Default;
 
     private T? _max;
     private T? _min;
@@ -26,7 +26,7 @@ public class NumericUpDownConstrained<T> : NumericUpDown<T> where T : notnull
         set
         {
             _max = value;
-            _hasMax = value is { };
+            _hasMax = value is not null;
         }
     }
 
@@ -39,12 +39,15 @@ public class NumericUpDownConstrained<T> : NumericUpDown<T> where T : notnull
         set
         {
             _min = value;
-            _hasMin = value is { };
+            _hasMin = value is not null;
         }
     }
 
     /// <inheritdoc />
-    public NumericUpDownConstrained() => ValueChanging += OnValueChanging;
+    public NumericUpDownConstrained()
+    {
+        ValueChanging += OnValueChanging;
+    }
 
     private void OnValueChanging(object? sender, ValueChangingEventArgs<T?> e)
     {
@@ -53,13 +56,13 @@ public class NumericUpDownConstrained<T> : NumericUpDown<T> where T : notnull
             return;
         }
 
-        if (_hasMax && _comparer.Compare(e.NewValue, _max) > 0)
+        if (_hasMax && Comparer.Compare(e.NewValue, _max) > 0)
         {
             e.Handled = true;
             return;
         }
 
-        if (_hasMin && _comparer.Compare(e.NewValue, _min) < 0)
+        if (_hasMin && Comparer.Compare(e.NewValue, _min) < 0)
         {
             e.Handled = true;
         }

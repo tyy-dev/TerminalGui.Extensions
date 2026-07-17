@@ -5,12 +5,13 @@ using Terminal.Gui.App;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
+using Terminal.Gui.Views;
 
 using TerminalGui.Extensions.Core.Builders;
 
 namespace TerminalGui.Extensions.Extensions.ViewExtensions;
 
-public static class ViewBaseExtensions
+public static partial class ViewBaseExtensions
 {
     extension<T>(T view) where T : View
     {
@@ -827,7 +828,23 @@ public static class ViewBaseExtensions
 
         #endregion
     }
+}
 
+/// <summary>
+/// Extension methods specifically for <see cref="Tabs"/> views.
+/// </summary>
+public static class TabsExtensions
+{
+    /// <summary>
+    ///     Creates a <see cref="TabsBuilder{TParent}" /> for fluent tab management.
+    /// </summary>
+    /// <param name="tabs">The <see cref="Tabs"/> instance to configure.</param>
+    /// <returns>A <see cref="TabsBuilder{Tabs}" /> for configuring tabs.</returns>
+    public static TabsBuilder<Tabs> TabsBuilder(this Tabs tabs) => new(null, tabs);
+}
+
+public static partial class ViewBaseExtensions
+{
     private static IEnumerable<TView> FindAllSubViewsRecursive<TView>(View parent) where TView : View
     {
         foreach (View child in parent.SubViews)

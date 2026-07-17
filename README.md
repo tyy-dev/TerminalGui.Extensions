@@ -1,11 +1,13 @@
 ﻿# TerminalGui.Extensions
 
-# WORK IN PROGRESS
+A fluent extension library for [Terminal.Gui](https://github.com/gui-cs/Terminal.Gui) that provides intuitive builder patterns and extension methods
 
-<details>
-<summary>Full Example — Building a settings window with multiple panels</summary>
+## Quick Start
 
 ```csharp
+using Terminal.Gui;
+using TerminalGui.Extensions.Extensions.ViewExtensions;
+
 public class SettingsWindow : Window
 {
     public SettingsWindow()
@@ -13,154 +15,212 @@ public class SettingsWindow : Window
         Title = "Settings";
         this.WithFill();
 
-        ViewBuilder<SettingsWindow> builder = this.Builder();
+        // Use the fluent builder pattern
+        this.Builder()
+            .AddFrameView(out FrameView audioFrame, title: "Audio")
+            .AddFrameView(out FrameView displayFrame, title: "Display");
 
-        builder.AddFrameView(out FrameView audioFrame, title: "Audio");
         audioFrame.WithFillAuto();
-
-        ViewBuilder<FrameView> audioBuilder = audioFrame.Builder();
-
-        audioBuilder.AddLabel(out _, text: "Master Volume:");
-
-        audioBuilder.AddNumericUpDown(
-            out NumericUpDownConstrained<int> nudVolume,
-            value: 80,
-            step: 5,
-            min: 0,
-            max: 100,
-            format: "{0}%");
-
-        audioBuilder.AddCheckBox(out CheckBox chkMute, text: "Mute All");
-        chkMute.IsChecked = false;
-
-        builder.AddFrameView(out FrameView displayFrame, title: "Display");
         displayFrame.WithFillAuto();
 
-        ViewBuilder<FrameView> displayBuilder = displayFrame.Builder();
+        // Build audio settings
+        audioFrame.Builder()
+            .AddLabel(out _, text: "Master Volume:")
+            .AddNumericUpDown(
+                out NumericUpDownConstrained<int> nudVolume,
+                value: 80,
+                step: 5,
+                min: 0,
+                max: 100,
+                format: "{0}%")
+            .AddCheckBox(out CheckBox chkMute, text: "Mute All");
 
-        displayBuilder.AddOptionSelector(
-            out OptionSelector themeSelector,
-            labels: ["Dark", "Light", "Solarized"],
-            value: 0);
+        // Build display settings
+        displayFrame.Builder()
+            .AddOptionSelector(
+                out OptionSelector themeSelector,
+                labels: ["Dark", "Light", "Solarized"],
+                value: 0)
+            .AddCheckBox(
+                out CheckBox chkAnimations,
+                text: "Enable Animations",
+                checkedState: CheckState.Checked);
 
-        themeSelector.OnValueChanged(e =>
-            ApplyTheme(e.NewValue ?? 0));
+        // Create tabs with the specialized TabsBuilder
+        this.Builder()
+            .AddTabs(out var tabs)
+            .AddTab("General", generalBuilder =>
+            {
+                generalBuilder
+                    .AddLabel(out _, text: "Player Name:")
+                    .AddTextField(out TextField tfName, text: "Player 1")
+                    .AddLabel(out _, text: "Difficulty:")
+                    .AddOptionSelector(out OptionSelector diffSelector, labels: ["Easy", "Normal", "Hard"], value: 1);
+            })
+            .AddTab("Keybinds", keybindsBuilder =>
+            {
+                keybindsBuilder.GetView().MakeScrollable();
+                keybindsBuilder
+                    .AddLabel(out _, text: "Move Up:")
+                    .AddTextField(out _, text: "W", readOnly: true)
+                    .AddLabel(out _, text: "Move Down:")
+                    .AddTextField(out _, text: "S", readOnly: true)
+                    .AddLabel(out _, text: "Interact:")
+                    .AddTextField(out _, text: "E", readOnly: true);
+            })
+            .Done(); // Return to the parent builder
 
-        displayBuilder.AddCheckBox(
-            out CheckBox chkAnimations,
-            text: "Enable Animations",
-            checkedState: CheckState.Checked);
+        // Add status bar
+        this.Builder()
+            .AddStatusBar(out _, statusBar => statusBar
+                .AddShortcut(text: "Save", key: Key.S.WithCtrl)
+                .AddShortcut(text: "Close", key: Key.Esc));
 
-        builder.AddTabView(out TabView tabView);
-        tabView.WithFill();
+        // Event handlers
+        themeSelector.OnValueChanged(e => ApplyTheme(e.NewValue ?? 0));
 
-        View generalContent = new View().WithFill();
-        generalContent.Builder()
-           .AddLabel(out _, text: "Player Name:")
-           .AddTextField(out TextField tfName, text: "Player 1")
-           .AddLabel(out _, text: "Difficulty:")
-           .AddOptionSelector(out OptionSelector<Difficulty> diffSelector, value: Difficulty.Normal);
-
-        tfName.OnValueChanged(e =>
-            Console.WriteLine($"Name changed to: {e.NewValue}"));
-
-        View keybindsContent = new View().WithFill();
-        keybindsContent.MakeScrollable();
-        ViewBuilder<View> keybindsBuilder = keybindsContent.Builder();
-
-        keybindsBuilder.AddLabel(out _, text: "Move Up:");
-        keybindsBuilder.AddTextField(out _, text: "W", readOnly: true);
-        keybindsBuilder.AddLabel(out _, text: "Move Down:");
-        keybindsBuilder.AddTextField(out _, text: "S", readOnly: true);
-        keybindsBuilder.AddLabel(out _, text: "Interact:");
-        keybindsBuilder.AddTextField(out _, text: "E", readOnly: true);
-
-        tabView.Builder()
-           .AddTab(out _, text: "General", view: generalContent)
-           .AddTab(out _, text: "Keybinds", view: keybindsContent);
-
-        builder.AddStatusBar(out _, statusBar => statusBar
-           .AddShortcut(text: "Save", key: Key.S.WithCtrl)
-           .AddShortcut(text: "Close", key: Key.Esc)
-        );
-
-        chkMute.OnValueChanging(e => {
+        chkMute.OnValueChanging(e =>
+        {
             bool isChecked = e.NewValue == CheckState.Checked;
             nudVolume.Max = isChecked ? 0 : 100;
-
-            if (isChecked)
-            {
-                nudVolume.Value = 0;
-            }
+            if (isChecked) nudVolume.Value = 0;
         });
     }
 
-    private static void ApplyTheme(int themeIndex)
-    { /* ... */
-    }
+    private static void ApplyTheme(int themeIndex) { /* ... */ }
 }
 ```
 
-</details>
+## Features
 
-## Table of contents
-*For more in depth documentation refer to the SourceCode listed under every TOC header*</br>
-*Also refer to [Terminal.Gui Documentation](https://gui-cs.github.io/Terminal.Gui/)*
+### 🎯 Fluent Builder Pattern
+- Chain method calls for readable, declarative UI construction
+- Automatic vertical layout with `NextPosY` (customizable)
+- Out parameters for immediate access to created views
 
-<!-- TOC-->
-  - [ViewBuilder](#viewbuilder)
-    - [Notes](#notes)
-    - [Properties](#properties)
-    - [Core Methods](#core-methods)
-    - [Add Methods](#add-methods)
-  - [View Extensions](#view-extensions)
-    - [Bar Extensions](#bar-extensions)
-    - [CheckBox Extensions](#checkbox-extensions)
-      - [CheckState Extensions](#checkstate-extensions)
-    - [ColorPicker Extensions](#colorpicker-extensions)
-    - [DatePicker Extensions](#datepicker-extensions)
-    - [FlagSelector Extensions](#flagselector-extensions)
-    - [HexView Extensions](#hexview-extensions)
-    - [Line Extensions](#line-extensions)
-    - [ListView Extensions](#listview-extensions)
-    - [Menu Extensions](#menu-extensions)
-    - [MenuBar Extensions](#menubar-extensions)
-    - [NumericUpDown Extensions](#numericupdown-extensions)
-    - [OptionSelector Extensions](#optionselector-extensions)
-    - [ScrollBar Extensions](#scrollbar-extensions)
-    - [ScrollSlider Extensions](#scrollslider-extensions)
-    - [PopoverMenu Extensions](#popovermenu-extensions)
-    - [Shortcut Extensions](#shortcut-extensions)
-    - [TabView Extensions](#tabview-extensions)
-    - [TextField Extensions](#textfield-extensions)
-    - [TableView Extensions](#tableview-extensions)
-    - [TextView Extensions](#textview-extensions)
-    - [Wizard Extensions](#wizard-extensions)
-  - [Custom Views](#custom-views)
-    - [NumericUpDownConstrained\<T\>](#numericupdownconstrainedt)
-  - [MessageBox Extensions](#messagebox-extensions)
+### 🔧 Comprehensive View Support
+All major Terminal.Gui controls with fluent builders:
+- **Containers**: FrameView, Window, Dialog, Tabs, Wizard
+- **Input**: TextField, TextView, NumericUpDown, CheckBox, DatePicker
+- **Selection**: OptionSelector, FlagSelector, DropDownList, ListView
+- **Display**: Label, Link, Markdown, ImageView, ProgressBar, GraphView
+- **Data**: TableView, TreeView, HexView
+- **Navigation**: Menu, MenuBar, StatusBar, Tabs
+- **Graphics**: Line, Bar, ColorPicker, ImageView
+- And many more...
+
+### 📋 Specialized Builders
+
+#### TabsBuilder
+Manage tabs with ease:
+```csharp
+this.Builder()
+    .AddTabs(out var tabs)
+    .WithTabSide(Side.Top)
+    .WithTabSpacing(2)
+    .AddTab("Home", builder => 
+        builder.AddLabel(out _, "Welcome!"))
+    .AddTab("Settings", builder => 
+        builder.AddCheckBox(out _, "Enable feature"))
+    .SelectTab(0)
+    .OnValueChanged(e => Console.WriteLine($"Switched to tab: {e.NewValue}"))
+    .Done();
+
+// Or configure an existing Tabs instance
+tabs.TabsBuilder()
+    .AddTab("New Tab", new View())
+    .SelectTab("Home")
+    .ClearTabs();
+```
+
+### 🎨 Layout Helpers
+```csharp
+// Fill available space
+view.WithFill();
+view.WithFill(widthAdjust: -2, heightAdjust: -1);
+
+// Auto-size to content
+view.WithAuto();
+
+// Mix fill width with auto height
+view.WithFillAuto();
+
+// Custom layout
+view.WithLayout(
+    width: Dim.Percent(50),
+    height: Dim.Fill() - 2,
+    x: Pos.Center(),
+    y: Pos.Bottom(parentView) + 1);
+
+// Make scrollable
+view.MakeScrollable();
+```
+
+### 🎪 Event Extensions
+Fluent event subscription for all views:
+```csharp
+button
+    .OnAccepted(e => Console.WriteLine("Button clicked!"))
+    .OnMouseEnter(e => button.ColorScheme = highlightScheme)
+    .OnMouseLeave(e => button.ColorScheme = normalScheme);
+
+textField
+    .OnValueChanged(e => Validate(e.NewValue))
+    .OnKeyDown(e => HandleSpecialKeys(e.Key));
+```
+
+## Table of Contents
+
+- [ViewBuilder](#viewbuilder)
+  - [Notes](#notes)
+  - [Properties](#properties)
+  - [Core Methods](#core-methods)
+  - [Add Methods](#add-methods)
+- [Specialized Builders](#specialized-builders)
+  - [TabsBuilder](#tabsbuilder-1)
+- [View Extensions](#view-extensions)
+  - [ViewBase Extensions](#viewbase-extensions)
+  - [Bar Extensions](#bar-extensions)
+  - [CheckBox Extensions](#checkbox-extensions)
+  - [ColorPicker Extensions](#colorpicker-extensions)
+  - [DatePicker Extensions](#datepicker-extensions)
+  - [FlagSelector Extensions](#flagselector-extensions)
+  - [HexView Extensions](#hexview-extensions)
+  - [Line Extensions](#line-extensions)
+  - [ListView Extensions](#listview-extensions)
+  - [Menu Extensions](#menu-extensions)
+  - [MenuBar Extensions](#menubar-extensions)
+  - [NumericUpDown Extensions](#numericupdown-extensions)
+  - [OptionSelector Extensions](#optionselector-extensions)
+  - [ScrollBar Extensions](#scrollbar-extensions)
+  - [Shortcut Extensions](#shortcut-extensions)
+  - [TextField Extensions](#textfield-extensions)
+  - [TableView Extensions](#tableview-extensions)
+  - [TextView Extensions](#textview-extensions)
+  - [Wizard Extensions](#wizard-extensions)
+- [Custom Views](#custom-views)
+  - [NumericUpDownConstrained\<T\>](#numericupdownconstrainedt)
+- [Application Extensions](#application-extensions)
   - [ApplicationExtensions](#applicationextensions)
   - [ApplicationNavigationExtensions](#applicationnavigationextensions)
   - [ApplicationPopoverExtensions](#applicationpopoverextensions)
-  - [RunnableExtensions](#runnableextensions)
-<!-- TOC -->
-
+- [MessageBox Extensions](#messagebox-extensions)
 
 ## ViewBuilder
 [ViewBuilder.cs](/Core/Builders/ViewBuilder.cs)
 
 ### Notes
 
-+ All `Add` methods return the `ViewBuilder` instance.
-+ All `Add(...)` methods return the added child via an `out` parameter as the first out parameter.
++ All `Add` methods return the `ViewBuilder` instance for chaining.
++ All `Add(...)` methods return the added child via an `out` parameter as the first parameter.
 + Parameters with `null` defaults retain their class's initialization values.
-Except for the `Text` parameter which defaults to `"{typeName} {parent.SubViews.Count}"` (e.g., `"Button 3"`) if not provided.
++ The `text` parameter defaults to `"{typeName} {parent.SubViews.Count}"` (e.g., `"Button 3"`) if not provided.
 
 ### Properties
 
 **NextPosY**
 
-A function that determines how to position a new child relative to the previously added child.</br>
+A function that determines how to position a new child relative to the previously added child.
 Takes the last added child as input and returns the Y position to use for the new child, or null to skip auto-positioning.
 
 By default this is `Pos.Bottom`, which ensures that each new child is placed directly below the last added child.
@@ -222,7 +282,7 @@ Every view type follows the same pattern — two overloads:
 | `AddHexView` | `HexView` | `source`, `readOnly`, `bytesPerLine`, `addressWidth`, `address` |
 | `AddLabel` | `Label` | `text`, `hotKeySpecifier` |
 | `AddLine` | `Line` | `length`, `orientation`, `lineStyle` |
-| `AddLinearRange<T>` | `LinearRange<T>` | `options`, `orientation`, `allowEmpty`, `rangeAllowSingle`, `showLegends`, `type`, `style`, ... |
+| `AddLinearSelector<T>` | `LinearSelector<T>` | `options`, `orientation`, `allowEmpty`, `showLegends`, `type`, `style`, `minimumInnerSpacing`, ... |
 | `AddListView` | `ListView` | `source`, `selectedItem`, `value`, `showMarks`, `markMultiple` |
 | `AddMenu` | `Menu` | `menuItems`, `orientation`, `alignmentModes`, `superMenuItem`, `value` |
 | `AddMenuItem` | `MenuItem` | `commandText`, `helpText`, `action`, `key`, `subMenu`, ... |
@@ -240,9 +300,6 @@ Every view type follows the same pattern — two overloads:
 | `AddShortcut` | `Shortcut` | `text`, `key`, `action`, `helpText`, `bindKeyToApplication`, `command`, `targetView`, ... |
 | `AddSpinnerView` | `SpinnerView` | `style`, `autoSpin`, `spinDelay`, `spinBounce`, `spinReverse`, `sequence` |
 | `AddStatusBar` | `StatusBar` | `shortcuts` or `configureShortcuts` callback, `orientation`, `alignmentModes` |
-| `AddTab` | `Tab` | `text`, `view`, `displayText` |
-| `AddTabView` | `TabView` | `maxTabTextWidth`, `style`, `selectedTab`, `tabScrollOffset` |
-| `AddTableView` | `TableView` | `table`, `fullRowSelect`, `multiSelect`, `style`, `selectedRow`, `selectedColumn`, ... |
 | `AddTextField` | `TextField` | `text`, `readOnly`, `secret`, `insertionPoint`, ... |
 | `AddTextView` | `TextView` | `text`, `readOnly`, `multiline`, `wordWrap`, `tabWidth`, `scrollBars`, ... |
 | `AddTreeView` | `TreeView` | `multiSelect`, `allowLetterBasedNavigation`, `maxDepth`, `treeBuilder`, `style`, ... |
@@ -328,15 +385,6 @@ viewBuilder.AddProgressBar(
     style: ProgressBarStyle.Continuous);
 ```
 
-**AddTabView / AddTab**
-
-```csharp
-viewBuilder.AddTabView(out TabView tabView);
-tabView.Builder()
-    .AddTab(out Tab tab1, text: "Tab 1", view: new Label { Text = "Content 1" })
-    .AddTab(out Tab tab2, text: "Tab 2", view: new Label { Text = "Content 2" });
-```
-
 **AddOptionSelector**
 
 ```csharp
@@ -348,6 +396,124 @@ viewBuilder.AddOptionSelector(
 viewBuilder.AddOptionSelector(
     out OptionSelector<MyEnum> enumSelector,
     value: MyEnum.FirstValue);
+```
+
+</details>
+
+## Specialized Builders
+
+### TabsBuilder
+[TabsBuilder.cs](/Core/Builders/TabsBuilder.cs)
+
+A specialized fluent builder for configuring and managing `Tabs` views. Returned by `ViewBuilder.AddTabs(...)` or accessible via `tabs.TabsBuilder()`.
+
+#### Creating a TabsBuilder
+
+**From ViewBuilder** (most common):
+```csharp
+this.Builder()
+    .AddTabs(out var tabs)
+    .AddTab("Home", builder => 
+        builder.AddLabel(out _, "Welcome!"))
+    .AddTab("Settings", builder => 
+        builder.AddCheckBox(out _, "Enable Feature"))
+    .Done(); // Returns to the parent ViewBuilder
+```
+
+**From existing Tabs instance**:
+```csharp
+tabs.TabsBuilder()
+    .AddTab("New Tab", new View())
+    .SelectTab(0);
+```
+
+#### TabsBuilder Methods
+
+| Method | Description |
+|--------|-------------|
+| `WithScrollOffset(int)` | Configure horizontal scroll offset for tab headers |
+| `WithTabDepth(int)` | Set height of the tab header area |
+| `WithLineStyle(LineStyle)` | Configure line style for tab borders |
+| `WithTabSide(Side)` | Set which side tabs appear (Top, Bottom, Left, Right) |
+| `WithTabSpacing(int)` | Configure space between tab headers |
+| `AddTab(title, Action<ViewBuilder<View>>)` | Add a tab and configure its content via builder callback |
+| `AddTab(title, View)` | Add a tab with an existing view as content |
+| `AddTab<TView>(title, out TView)` | Add a typed tab and get a builder for its content |
+| `RemoveTabAt(int)` | Remove tab at specified index |
+| `ClearTabs()` | Remove all tabs |
+| `SelectTab(int)` | Select tab by index |
+| `SelectTab(string)` | Select tab by title |
+| `OnValueChanged(handler)` | Attach handler to tab selection changed event |
+| `OnValueChanging(handler)` | Attach handler to tab selection changing event (cancellable) |
+| `Done()` | Return to parent `ViewBuilder` (only when created via `AddTabs`) |
+
+#### TabsBuilder Examples
+
+<details>
+<summary>Basic tabs with fluent content</summary>
+
+```csharp
+this.Builder()
+    .AddTabs(out var tabs)
+    .WithTabSide(Side.Top)
+    .AddTab("Profile", builder =>
+    {
+        builder
+            .AddLabel(out _, "Username:")
+            .AddTextField(out var username, "Player1")
+            .AddLabel(out _, "Level:")
+            .AddNumericUpDown(out var level, value: 5);
+    })
+    .AddTab("Inventory", builder =>
+    {
+        builder.AddListView(out var list, source: items);
+    })
+    .SelectTab(0)
+    .OnValueChanged(e => Console.WriteLine($"Switched to: {e.NewValue?.Title}"))
+    .Done();
+```
+
+</details>
+
+<details>
+<summary>Advanced tab management</summary>
+
+```csharp
+var tabBuilder = tabs.TabsBuilder();
+
+// Add dynamic tabs
+for (int i = 0; i < 5; i++)
+{
+    int index = i; // Capture
+    tabBuilder.AddTab($"Tab {i}", builder =>
+        builder.AddButton(out _, $"Button in tab {index}"));
+}
+
+// Select specific tab
+tabBuilder.SelectTab("Tab 2");
+
+// Remove last tab
+var count = tabs.TabCollection.Count();
+if (count > 0)
+    tabBuilder.RemoveTabAt(count - 1);
+```
+
+</details>
+
+<details>
+<summary>Typed tab views</summary>
+
+```csharp
+this.Builder()
+    .AddTabs(out var tabs)
+    .AddTab("Editor", out FrameView editorFrame)
+    .AddButton(out _, "Save")
+    .AddButton(out _, "Load")
+    .Done() // Returns from the editorFrame builder
+    .AddTab("Preview", out View previewView)
+    .AddLabel(out _, "Preview content here")
+    .Done() // Returns from the previewView builder
+    .Done(); // Returns from the TabsBuilder to parent ViewBuilder
 ```
 
 </details>
@@ -757,14 +923,6 @@ numericUpDown.OnValueChanging(e => {
 | `OnOrientationChanged(callback)` | `shortcut.OrientationChanged += ...` |
 | `OnOrientationChanging(callback)` | `shortcut.OrientationChanging += ...` |
 
-### TabView Extensions
-[TabViewExtensions.cs](/Extensions/ViewExtensions/TabViewExtensions.cs)
-
-| Method | Wraps |
-|--------|-------|
-| `OnSelectedTabChanged(callback)` | `tabView.SelectedTabChanged += ...` |
-| `OnTabClicked(callback)` | `tabView.TabClicked += ...` |
-
 ### TextField Extensions
 [TextFieldExtensions.cs](/Extensions/ViewExtensions/TextFieldExtensions.cs)
 
@@ -780,15 +938,6 @@ textField.OnTextChanging(e => {
     if (e.Result?.Contains("bad") == true) e.Result = null; // cancel
 });
 ```
-
-### TableView Extensions
-[TableViewExtensions.cs](/Extensions/ViewExtensions/TableViewExtensions.cs)
-
-| Method | Wraps |
-|--------|-------|
-| `OnCellActivated(callback)` | `tableView.CellActivated += ...` |
-| `OnCellToggled(callback)` | `tableView.CellToggled += ...` |
-| `OnSelectedCellChanged(callback)` | `tableView.SelectedCellChanged += ...` |
 
 ### TextView Extensions
 [TextViewExtensions.cs](/Extensions/ViewExtensions/TextViewExtensions.cs)

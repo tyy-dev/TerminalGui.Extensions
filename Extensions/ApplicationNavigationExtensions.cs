@@ -20,7 +20,7 @@ public static class ApplicationNavigationExtensions
 
         /// <inheritdoc cref="NavigatesTo{TRunnableTo}(ApplicationNavigation, View, TRunnableTo, bool)"
         ///     path="/param[@name='targetView']" />
-        /// <param name="runnableToFactory">An factory returning the runnable instance to navigate to.</param>
+        /// <param name="runnableToFactory">A factory returning the runnable instance to navigate to.</param>
         public View NavigatesTo<TRunnableTo>(View targetView, Func<TRunnableTo> runnableToFactory, bool closeCurrent = false)
             where TRunnableTo : Runnable => navigation.SetupNavigation(
             targetView,

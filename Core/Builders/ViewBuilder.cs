@@ -1,16 +1,13 @@
 ﻿using System.Drawing;
 using System.Globalization;
 using System.Text;
-
 using Terminal.Gui.Drawing;
 using Terminal.Gui.Drivers;
 using Terminal.Gui.Input;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
-
 using TerminalGui.Extensions.Core.Views;
 using TerminalGui.Extensions.Extensions.ViewExtensions;
-
 using Attribute = Terminal.Gui.Drawing.Attribute;
 using Color = Terminal.Gui.Drawing.Color;
 
@@ -27,33 +24,24 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     Takes the last added child as input and returns the Y position to use for the new child,
     ///     or <see langword="null" /> to skip auto-positioning.
     ///     <br></br>
-    ///     By default this is  <see cref="Pos.Bottom" />, which ensures that each new child is placed directly below the last
+    ///     By default, this is  <see cref="Pos.Bottom" />, which ensures that each new child is placed directly below the last
     ///     added child.
     /// </summary>
-    public Func<View, Pos?>? NextPosY {
-        get;
-        set;
-    } = Pos.Bottom;
+    public Func<View, Pos?>? NextPosY { get; set; } = Pos.Bottom;
 
     /// <summary>
-    ///     Does the exact same as <see cref="NextPosY" />, but for the X position. By default no auto-positioning is applied
+    ///     Does the exact same as <see cref="NextPosY" />, but for the X position. By default, no auto-positioning is applied
     ///     for X.
     /// </summary>
-    public Func<View, Pos?>? NextPosX {
-        get;
-        set;
-    } = null;
+    public Func<View, Pos?>? NextPosX { get; set; } = null;
 
     /// <summary>
-    ///     If <see langword="true" />, skips any auto-positioning logic for any future added childam, unless it is set to
+    ///     If <see langword="true" />, skips any auto-positioning logic for any future added children, unless it is set to
     ///     <see langword="fale" /> again.
     ///     It is suggested to set this property when using view.WithLayout if you do not want auto-positioning to interfere
-    ///     with the layouting.
+    ///     with the lay-outing.
     /// </summary>
-    public bool SkipAutoPositioning {
-        get;
-        set;
-    } = false;
+    public bool SkipAutoPositioning { get; set; } = false;
 
     /// <summary>
     ///     Returns the parent <see cref="View" /> associated with the current instance.
@@ -83,14 +71,14 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     public ViewBuilder<TParent> Add<TChild>(out TChild addedChild, TChild child, Action<TChild>? configureBeforeAdd = null)
         where TChild : View
     {
-        if (!SkipAutoPositioning && _lastChildAdded is { } && parent.SubViews.Contains(_lastChildAdded))
+        if (!SkipAutoPositioning && _lastChildAdded is not null && parent.SubViews.Contains(_lastChildAdded))
         {
-            if (NextPosY?.Invoke(_lastChildAdded) is { } yPos)
+            if (NextPosY?.Invoke(_lastChildAdded) is {} yPos)
             {
                 child.Y = yPos;
             }
 
-            if (NextPosX?.Invoke(_lastChildAdded) is { } xPos)
+            if (NextPosX?.Invoke(_lastChildAdded) is {} xPos)
             {
                 child.X = xPos;
             }
@@ -99,7 +87,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         configureBeforeAdd?.Invoke(child);
 
         _lastChildAdded = child;
-        child = (TChild)parent.Add(child)!;
+        child = (TChild) parent.Add(child)!;
 
         addedChild = child;
         return this;
@@ -173,7 +161,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     Adds a <see cref="Bar" /> to the parent view.
     /// </summary>
     /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="Bar" /> instance</returns>
-    public ViewBuilder<TParent> AddBar(Bar bar) => Add(out _, bar);
+    public ViewBuilder<TParent> AddBar(Bar bar) => Add(out Bar _, bar);
 
     /// <inheritdoc cref="AddBar(Bar)" path="/summary" />
     /// <param name="barOut">
@@ -190,14 +178,16 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         out Bar barOut,
         AlignmentModes? alignmentModes = null,
         Orientation? orientation = null
-    ) => Add(
-        out barOut,
-        new(),
-        bar => {
-            bar.AlignmentModes = alignmentModes ?? bar.AlignmentModes;
-            bar.Orientation = orientation ?? bar.Orientation;
-        }
-    );
+    ) =>
+        Add(
+            out barOut,
+            child: new(),
+            configureBeforeAdd: bar =>
+            {
+                bar.AlignmentModes = alignmentModes ?? bar.AlignmentModes;
+                bar.Orientation = orientation ?? bar.Orientation;
+            }
+        );
 
     #endregion
 
@@ -207,7 +197,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     Adds a <see cref="Button" /> to the parent view.
     /// </summary>
     /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="Button" /> instance</returns>
-    public ViewBuilder<TParent> AddButton(Button button) => Add(out _, button);
+    public ViewBuilder<TParent> AddButton(Button button) => Add(out Button _, button);
 
     /// <inheritdoc cref="AddButton(Button)" path="/summary" />
     /// <param name="buttonOut">
@@ -234,23 +224,25 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         bool? noDecorations = null,
         bool? noPadding = null,
         Rune? hotKeySpecifier = null
-    ) => Add(
-        out buttonOut,
-        new(),
-        btn => {
-            btn.Text = text ?? $"Button {parent.SubViews.Count}";
-            btn.IsDefault = isDefault ?? btn.IsDefault;
-            btn.NoDecorations = noDecorations ?? btn.NoDecorations;
-            btn.NoPadding = noPadding ?? btn.NoPadding;
-            btn.HotKeySpecifier = hotKeySpecifier ?? btn.HotKeySpecifier;
-        }
-    );
+    ) =>
+        Add(
+            out buttonOut,
+            child: new(),
+            configureBeforeAdd: btn =>
+            {
+                btn.Text = text ?? $"Button {parent.SubViews.Count}";
+                btn.IsDefault = isDefault ?? btn.IsDefault;
+                btn.NoDecorations = noDecorations ?? btn.NoDecorations;
+                btn.NoPadding = noPadding ?? btn.NoPadding;
+                btn.HotKeySpecifier = hotKeySpecifier ?? btn.HotKeySpecifier;
+            }
+        );
 
     #endregion
 
     #region CharMap
 
-    public ViewBuilder<TParent> AddCharMap(CharMap charMap) => Add(out _, charMap);
+    public ViewBuilder<TParent> AddCharMap(CharMap charMap) => Add(out CharMap _, charMap);
 
     /// <inheritdoc cref="AddCharMap(CharMap)" path="/summary" />
     /// <param name="charMapOut">
@@ -279,17 +271,19 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         int? startCodePoint = null,
         Rune? value = null,
         UnicodeCategory? showUnicodeCategory = null
-    ) => Add(
-        out charMapOut,
-        new(),
-        cm => {
-            cm.SelectedCodePoint = selectedCodePoint ?? cm.SelectedCodePoint;
-            cm.ShowGlyphWidths = showGlyphWidths ?? cm.ShowGlyphWidths;
-            cm.StartCodePoint = startCodePoint ?? cm.StartCodePoint;
-            cm.Value = value ?? cm.Value;
-            cm.ShowUnicodeCategory = showUnicodeCategory ?? cm.ShowUnicodeCategory;
-        }
-    );
+    ) =>
+        Add(
+            out charMapOut,
+            child: new(),
+            configureBeforeAdd: cm =>
+            {
+                cm.SelectedCodePoint = selectedCodePoint ?? cm.SelectedCodePoint;
+                cm.ShowGlyphWidths = showGlyphWidths ?? cm.ShowGlyphWidths;
+                cm.StartCodePoint = startCodePoint ?? cm.StartCodePoint;
+                cm.Value = value ?? cm.Value;
+                cm.ShowUnicodeCategory = showUnicodeCategory ?? cm.ShowUnicodeCategory;
+            }
+        );
 
     #endregion
 
@@ -299,7 +293,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     Adds a <see cref="CheckBox" /> to the parent view.
     /// </summary>
     /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="CheckBox" /> instance</returns>
-    public ViewBuilder<TParent> AddCheckBox(CheckBox checkBox) => Add(out _, checkBox);
+    public ViewBuilder<TParent> AddCheckBox(CheckBox checkBox) => Add(out CheckBox _, checkBox);
 
     /// <inheritdoc cref="AddCheckBox(CheckBox)" path="/summary" />
     /// <param name="checkBox">
@@ -382,19 +376,21 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         bool? allowCheckedStateNone = null,
         bool radioStyle = false,
         Rune? hotKeySpecifier = null
-    ) => Add(
-        out checkBoxOut,
-        new(),
-        chBox => {
-            string defaultName = radioStyle ? "RadioButton" : "CheckBox";
+    ) =>
+        Add(
+            out checkBoxOut,
+            child: new(),
+            configureBeforeAdd: chBox =>
+            {
+                string defaultName = radioStyle ? "RadioButton" : "CheckBox";
 
-            chBox.Text = text ?? $"{defaultName} {parent.SubViews.Count}";
-            chBox.Value = checkedState ?? chBox.Value;
-            chBox.AllowCheckStateNone = allowCheckedStateNone ?? chBox.AllowCheckStateNone;
-            chBox.RadioStyle = radioStyle;
-            chBox.HotKeySpecifier = hotKeySpecifier ?? chBox.HotKeySpecifier;
-        }
-    );
+                chBox.Text = text ?? $"{defaultName} {parent.SubViews.Count}";
+                chBox.Value = checkedState ?? chBox.Value;
+                chBox.AllowCheckStateNone = allowCheckedStateNone ?? chBox.AllowCheckStateNone;
+                chBox.RadioStyle = radioStyle;
+                chBox.HotKeySpecifier = hotKeySpecifier ?? chBox.HotKeySpecifier;
+            }
+        );
 
     #endregion
 
@@ -404,7 +400,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     Adds a <see cref="DropDownList" /> to the parent view.
     /// </summary>
     /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="DropDownList" /> instance</returns>
-    public ViewBuilder<TParent> AddDropDownList(DropDownList dropDownList) => Add(out _, dropDownList);
+    public ViewBuilder<TParent> AddDropDownList(DropDownList dropDownList) => Add(out DropDownList _, dropDownList);
 
     /// <inheritdoc cref="AddDropDownList(DropDownList)" path="/summary" />
     /// <param name="dropDownListOut">
@@ -429,22 +425,24 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         string? text = null,
         bool? readOnly = null,
         bool? secret = null
-    ) => Add(
-        out dropDownListOut,
-        new(),
-        ddl => {
-            ddl.Source = source ?? ddl.Source;
-            ddl.Text = text ?? ddl.Text;
-            ddl.ReadOnly = readOnly ?? ddl.ReadOnly;
-            ddl.Secret = secret ?? ddl.Secret;
-        }
-    );
+    ) =>
+        Add(
+            out dropDownListOut,
+            child: new(),
+            configureBeforeAdd: ddl =>
+            {
+                ddl.Source = source ?? ddl.Source;
+                ddl.Text = text ?? ddl.Text;
+                ddl.ReadOnly = readOnly ?? ddl.ReadOnly;
+                ddl.Secret = secret ?? ddl.Secret;
+            }
+        );
 
     #endregion
 
     #region DatePicker
 
-    public ViewBuilder<TParent> AddDatePicker(DatePicker datePicker) => Add(out _, datePicker);
+    public ViewBuilder<TParent> AddDatePicker(DatePicker datePicker) => Add(out DatePicker _, datePicker);
 
     /// <inheritdoc cref="AddDatePicker(DatePicker)" path="/summary" />
     /// <param name="datePickerOut">
@@ -465,21 +463,23 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         DateTime? date = null,
         CultureInfo? culture = null,
         string? text = null
-    ) => Add(
-        out datePickerOut,
-        new(),
-        dp => {
-            dp.Value = date ?? dp.Value;
-            dp.Culture = culture ?? dp.Culture;
-            dp.Text = text ?? dp.Text;
-        }
-    );
+    ) =>
+        Add(
+            out datePickerOut,
+            child: new(),
+            configureBeforeAdd: dp =>
+            {
+                dp.Value = date ?? dp.Value;
+                dp.Culture = culture ?? dp.Culture;
+                dp.Text = text ?? dp.Text;
+            }
+        );
 
     #endregion
 
     #region Dialog
 
-    public ViewBuilder<TParent> AddDialog(Dialog dialog) => Add(out _, dialog);
+    public ViewBuilder<TParent> AddDialog(Dialog dialog) => Add(out Dialog _, dialog);
 
     /// <inheritdoc cref="AddDialog(Dialog)" path="/summary" />
     /// <param name="dialogOut">
@@ -506,23 +506,25 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         Alignment? buttonAlignment = null,
         AlignmentModes? buttonAlignmentModes = null,
         int? result = null
-    ) => Add(
-        out dialogOut,
-        new(),
-        dlg => {
-            dlg.Title = title ?? dlg.Title;
-            dlg.Buttons = buttons ?? dlg.Buttons;
-            dlg.ButtonAlignment = buttonAlignment ?? dlg.ButtonAlignment;
-            dlg.ButtonAlignmentModes = buttonAlignmentModes ?? dlg.ButtonAlignmentModes;
-            dlg.Result = result ?? dlg.Result;
-        }
-    );
+    ) =>
+        Add(
+            out dialogOut,
+            child: new(),
+            configureBeforeAdd: dlg =>
+            {
+                dlg.Title = title ?? dlg.Title;
+                dlg.Buttons = buttons ?? dlg.Buttons;
+                dlg.ButtonAlignment = buttonAlignment ?? dlg.ButtonAlignment;
+                dlg.ButtonAlignmentModes = buttonAlignmentModes ?? dlg.ButtonAlignmentModes;
+                dlg.Result = result ?? dlg.Result;
+            }
+        );
 
     #endregion
 
     #region File Dialogs
 
-    public ViewBuilder<TParent> AddFileDialog(FileDialog fileDialog) => Add(out _, fileDialog);
+    public ViewBuilder<TParent> AddFileDialog(FileDialog fileDialog) => Add(out FileDialog _, fileDialog);
 
     /// <inheritdoc cref="AddFileDialog(FileDialog)" path="/summary" />
     /// <param name="fileDialogOut">
@@ -553,20 +555,22 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         bool? allowsMultipleSelection = null,
         bool? mustExist = null,
         OpenMode? openMode = null
-    ) => Add(
-        out fileDialogOut,
-        new(),
-        fd => {
-            fd.Title = title ?? fd.Title;
-            fd.Path = path ?? fd.Path;
-            fd.AllowedTypes = allowedTypes ?? fd.AllowedTypes;
-            fd.AllowsMultipleSelection = allowsMultipleSelection ?? fd.AllowsMultipleSelection;
-            fd.MustExist = mustExist ?? fd.MustExist;
-            fd.OpenMode = openMode ?? fd.OpenMode;
-        }
-    );
+    ) =>
+        Add(
+            out fileDialogOut,
+            child: new(),
+            configureBeforeAdd: fd =>
+            {
+                fd.Title = title ?? fd.Title;
+                fd.Path = path ?? fd.Path;
+                fd.AllowedTypes = allowedTypes ?? fd.AllowedTypes;
+                fd.AllowsMultipleSelection = allowsMultipleSelection ?? fd.AllowsMultipleSelection;
+                fd.MustExist = mustExist ?? fd.MustExist;
+                fd.OpenMode = openMode ?? fd.OpenMode;
+            }
+        );
 
-    public ViewBuilder<TParent> AddOpenDialog(OpenDialog openDialog) => Add(out _, openDialog);
+    public ViewBuilder<TParent> AddOpenDialog(OpenDialog openDialog) => Add(out OpenDialog _, openDialog);
 
     /// <inheritdoc cref="AddOpenDialog(OpenDialog)" path="/summary" />
     /// <param name="openDialogOut">
@@ -597,20 +601,22 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         bool? allowsMultipleSelection = null,
         bool? mustExist = null,
         OpenMode? openMode = null
-    ) => Add(
-        out openDialogOut,
-        new(),
-        od => {
-            od.Title = title ?? od.Title;
-            od.Path = path ?? od.Path;
-            od.AllowedTypes = allowedTypes ?? od.AllowedTypes;
-            od.AllowsMultipleSelection = allowsMultipleSelection ?? od.AllowsMultipleSelection;
-            od.MustExist = mustExist ?? od.MustExist;
-            od.OpenMode = openMode ?? od.OpenMode;
-        }
-    );
+    ) =>
+        Add(
+            out openDialogOut,
+            child: new(),
+            configureBeforeAdd: od =>
+            {
+                od.Title = title ?? od.Title;
+                od.Path = path ?? od.Path;
+                od.AllowedTypes = allowedTypes ?? od.AllowedTypes;
+                od.AllowsMultipleSelection = allowsMultipleSelection ?? od.AllowsMultipleSelection;
+                od.MustExist = mustExist ?? od.MustExist;
+                od.OpenMode = openMode ?? od.OpenMode;
+            }
+        );
 
-    public ViewBuilder<TParent> AddSaveDialog(SaveDialog saveDialog) => Add(out _, saveDialog);
+    public ViewBuilder<TParent> AddSaveDialog(SaveDialog saveDialog) => Add(out SaveDialog _, saveDialog);
 
     /// <inheritdoc cref="AddSaveDialog(SaveDialog)" path="/summary" />
     /// <param name="saveDialogOut">
@@ -633,22 +639,24 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         string? path = null,
         List<IAllowedType>? allowedTypes = null,
         bool? mustExist = null
-    ) => Add(
-        out saveDialogOut,
-        new(),
-        sd => {
-            sd.Title = title ?? sd.Title;
-            sd.Path = path ?? sd.Path;
-            sd.AllowedTypes = allowedTypes ?? sd.AllowedTypes;
-            sd.MustExist = mustExist ?? sd.MustExist;
-        }
-    );
+    ) =>
+        Add(
+            out saveDialogOut,
+            child: new(),
+            configureBeforeAdd: sd =>
+            {
+                sd.Title = title ?? sd.Title;
+                sd.Path = path ?? sd.Path;
+                sd.AllowedTypes = allowedTypes ?? sd.AllowedTypes;
+                sd.MustExist = mustExist ?? sd.MustExist;
+            }
+        );
 
     #endregion
 
     #region FrameView
 
-    public ViewBuilder<TParent> AddFrameView(FrameView frameView) => Add(out _, frameView);
+    public ViewBuilder<TParent> AddFrameView(FrameView frameView) => Add(out FrameView _, frameView);
 
     /// <inheritdoc cref="AddFrameView(FrameView)" path="/summary" />
     /// <param name="frameViewOut">
@@ -659,16 +667,17 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     public ViewBuilder<TParent> AddFrameView(
         out FrameView frameViewOut,
         string? title = null
-    ) => Add(
-        out frameViewOut,
-        new(),
-        fv => fv.Title = title ?? fv.Title);
+    ) =>
+        Add(
+            out frameViewOut,
+            child: new(),
+            configureBeforeAdd: fv => fv.Title = title ?? fv.Title);
 
     #endregion
 
     #region GraphView
 
-    public ViewBuilder<TParent> AddGraphView(GraphView graphView) => Add(out _, graphView);
+    public ViewBuilder<TParent> AddGraphView(GraphView graphView) => Add(out GraphView _, graphView);
 
     /// <inheritdoc cref="AddGraphView(GraphView)" path="/summary" />
     /// <param name="graphViewOut">
@@ -705,30 +714,32 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         uint? marginBottom = null,
         HorizontalAxis? axisX = null,
         VerticalAxis? axisY = null
-    ) => Add(
-        out graphViewOut,
-        new(),
-        gv => {
-            gv.CellSize = cellSize ?? gv.CellSize;
-            gv.ScrollOffset = scrollOffset ?? gv.ScrollOffset;
-
-            if (graphColor is { })
+    ) =>
+        Add(
+            out graphViewOut,
+            child: new(),
+            configureBeforeAdd: gv =>
             {
-                gv.GraphColor = graphColor;
-            }
+                gv.CellSize = cellSize ?? gv.CellSize;
+                gv.ScrollOffset = scrollOffset ?? gv.ScrollOffset;
 
-            gv.MarginLeft = marginLeft ?? gv.MarginLeft;
-            gv.MarginBottom = marginBottom ?? gv.MarginBottom;
-            gv.AxisX = axisX ?? gv.AxisX;
-            gv.AxisY = axisY ?? gv.AxisY;
-        }
-    );
+                if (graphColor is not null)
+                {
+                    gv.GraphColor = graphColor;
+                }
+
+                gv.MarginLeft = marginLeft ?? gv.MarginLeft;
+                gv.MarginBottom = marginBottom ?? gv.MarginBottom;
+                gv.AxisX = axisX ?? gv.AxisX;
+                gv.AxisY = axisY ?? gv.AxisY;
+            }
+        );
 
     #endregion
 
     #region HexView
 
-    public ViewBuilder<TParent> AddHexView(HexView hexView) => Add(out _, hexView);
+    public ViewBuilder<TParent> AddHexView(HexView hexView) => Add(out HexView _, hexView);
 
     /// <inheritdoc cref="AddHexView(HexView)" path="/summary" />
     /// <param name="hexViewOut">
@@ -757,17 +768,19 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         int? bytesPerLine = null,
         int? addressWidth = null,
         long? address = null
-    ) => Add(
-        out hexViewOut,
-        new(),
-        hv => {
-            hv.Source = source ?? hv.Source;
-            hv.ReadOnly = readOnly ?? hv.ReadOnly;
-            hv.BytesPerLine = bytesPerLine ?? hv.BytesPerLine;
-            hv.AddressWidth = addressWidth ?? hv.AddressWidth;
-            hv.Address = address ?? hv.Address;
-        }
-    );
+    ) =>
+        Add(
+            out hexViewOut,
+            child: new(),
+            configureBeforeAdd: hv =>
+            {
+                hv.Source = source ?? hv.Source;
+                hv.ReadOnly = readOnly ?? hv.ReadOnly;
+                hv.BytesPerLine = bytesPerLine ?? hv.BytesPerLine;
+                hv.AddressWidth = addressWidth ?? hv.AddressWidth;
+                hv.Address = address ?? hv.Address;
+            }
+        );
 
     #endregion
 
@@ -777,7 +790,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     Adds a <see cref="Label" /> to the parent view.
     /// </summary>
     /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="Label" /> instance</returns>
-    public ViewBuilder<TParent> AddLabel(Label label) => Add(out _, label);
+    public ViewBuilder<TParent> AddLabel(Label label) => Add(out Label _, label);
 
     /// <inheritdoc cref="AddLabel(Label)" path="/summary" />
     /// <param name="labelOut">
@@ -790,13 +803,15 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     <inheritdoc cref="Label.HotKeySpecifier" path="/summary" />
     /// </param>
     /// <inheritdoc cref="AddLabel(Label)" path="/returns" />
-    public ViewBuilder<TParent> AddLabel(out Label labelOut, string? text = null, Rune? hotKeySpecifier = null) => Add(
-        out labelOut,
-        new(),
-        lbl => {
-            lbl.Text = text ?? $"Label {parent.SubViews.Count}";
-            lbl.HotKeySpecifier = hotKeySpecifier ?? lbl.HotKeySpecifier;
-        });
+    public ViewBuilder<TParent> AddLabel(out Label labelOut, string? text = null, Rune? hotKeySpecifier = null) =>
+        Add(
+            out labelOut,
+            child: new(),
+            configureBeforeAdd: lbl =>
+            {
+                lbl.Text = text ?? $"Label {parent.SubViews.Count}";
+                lbl.HotKeySpecifier = hotKeySpecifier ?? lbl.HotKeySpecifier;
+            });
 
     #endregion
 
@@ -806,7 +821,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     Adds a <see cref="Line" /> to the parent view.
     /// </summary>
     /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="Line" /> instance</returns>
-    public ViewBuilder<TParent> AddLine(Line line) => Add(out _, line);
+    public ViewBuilder<TParent> AddLine(Line line) => Add(out Line _, line);
 
     /// <inheritdoc cref="AddLine(Line)" path="/summary" />
     /// <param name="lineOut">
@@ -822,20 +837,22 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     <inheritdoc cref="Line.Style" path="/summary" />
     /// </param>
     /// <inheritdoc cref="AddLine(Line)" path="/returns" />
-    public ViewBuilder<TParent> AddLine(out Line lineOut, Dim? length = null, Orientation? orientation = null, LineStyle? lineStyle = null) => Add(
-        out lineOut,
-        new(),
-        line => {
-            line.Length = length ?? line.Length;
-            line.Orientation = orientation ?? line.Orientation;
-            line.Style = lineStyle ?? line.Style;
-        });
+    public ViewBuilder<TParent> AddLine(out Line lineOut, Dim? length = null, Orientation? orientation = null, LineStyle? lineStyle = null) =>
+        Add(
+            out lineOut,
+            child: new(),
+            configureBeforeAdd: line =>
+            {
+                line.Length = length ?? line.Length;
+                line.Orientation = orientation ?? line.Orientation;
+                line.Style = lineStyle ?? line.Style;
+            });
 
     #endregion
 
     #region ListView
 
-    public ViewBuilder<TParent> AddListView(ListView listView) => Add(out _, listView);
+    public ViewBuilder<TParent> AddListView(ListView listView) => Add(out ListView _, listView);
 
     /// <inheritdoc cref="AddListView(ListView)" path="/summary" />
     /// <param name="listViewOut">
@@ -864,32 +881,34 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         int? value = null,
         bool? showMarks = null,
         bool? markMultiple = null
-    ) => Add(
-        out listViewOut,
-        new(),
-        lv => {
-            lv.Source = source ?? lv.Source;
-
-            if (selectedItem is { })
+    ) =>
+        Add(
+            out listViewOut,
+            child: new(),
+            configureBeforeAdd: lv =>
             {
-                lv.SelectedItem = selectedItem;
-            }
+                lv.Source = source ?? lv.Source;
 
-            if (value is { })
-            {
-                lv.Value = value;
-            }
+                if (selectedItem is not null)
+                {
+                    lv.SelectedItem = selectedItem;
+                }
 
-            lv.ShowMarks = showMarks ?? lv.ShowMarks;
-            lv.MarkMultiple = markMultiple ?? lv.MarkMultiple;
-        }
-    );
+                if (value is not null)
+                {
+                    lv.Value = value;
+                }
+
+                lv.ShowMarks = showMarks ?? lv.ShowMarks;
+                lv.MarkMultiple = markMultiple ?? lv.MarkMultiple;
+            }
+        );
 
     #endregion
 
     #region Menu
 
-    public ViewBuilder<TParent> AddMenu(Menu menu) => Add(out _, menu);
+    public ViewBuilder<TParent> AddMenu(Menu menu) => Add(out Menu _, menu);
 
     /// <inheritdoc cref="AddMenu(Menu)" path="/summary" />
     /// <param name="menuOut">
@@ -916,18 +935,20 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         AlignmentModes? alignmentModes = null,
         MenuItem? superMenuItem = null,
         MenuItem? value = null
-    ) => Add(
-        out menuOut,
-        menuItems is { } ? new(menuItems) : new(),
-        m => {
-            m.Orientation = orientation ?? m.Orientation;
-            m.AlignmentModes = alignmentModes ?? m.AlignmentModes;
-            m.SuperMenuItem = superMenuItem ?? m.SuperMenuItem;
-            m.Value = value ?? m.Value;
-        }
-    );
+    ) =>
+        Add(
+            out menuOut,
+            child: menuItems is not null ? new(menuItems) : new(),
+            configureBeforeAdd: m =>
+            {
+                m.Orientation = orientation ?? m.Orientation;
+                m.AlignmentModes = alignmentModes ?? m.AlignmentModes;
+                m.SuperMenuItem = superMenuItem ?? m.SuperMenuItem;
+                m.Value = value ?? m.Value;
+            }
+        );
 
-    public ViewBuilder<TParent> AddMenuItem(MenuItem menuItem) => Add(out _, menuItem);
+    public ViewBuilder<TParent> AddMenuItem(MenuItem menuItem) => Add(out MenuItem _, menuItem);
 
     /// <inheritdoc cref="AddMenuItem(MenuItem)" path="/summary" />
     /// <param name="menuItemOut">
@@ -978,28 +999,30 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         View? commandView = null,
         AlignmentModes? alignmentModes = null,
         int? minimumKeyTextSize = null
-    ) => Add(
-        out menuItemOut,
-        new(),
-        mi => {
-            mi.Title = commandText ?? $"Menu Item {GetView().SubViews.Count}";
-            mi.HelpText = helpText ?? mi.HelpText;
-            mi.Action = action ?? mi.Action;
-            mi.Key = key ?? mi.Key;
-            mi.TargetView = targetView ?? mi.TargetView;
-            mi.Command = command ?? mi.Command;
-            mi.SubMenu = subMenu ?? mi.SubMenu;
-            mi.BindKeyToApplication = bindKeyToApplication ?? mi.BindKeyToApplication;
-            mi.Orientation = orientation ?? mi.Orientation;
-            mi.CommandView = commandView ?? mi.CommandView;
-            mi.AlignmentModes = alignmentModes ?? mi.AlignmentModes;
-            mi.MinimumKeyTextSize = minimumKeyTextSize ?? mi.MinimumKeyTextSize;
-        }
-    );
+    ) =>
+        Add(
+            out menuItemOut,
+            child: new(),
+            configureBeforeAdd: mi =>
+            {
+                mi.Title = commandText ?? $"Menu Item {GetView().SubViews.Count}";
+                mi.HelpText = helpText ?? mi.HelpText;
+                mi.Action = action ?? mi.Action;
+                mi.Key = key ?? mi.Key;
+                mi.TargetView = targetView ?? mi.TargetView;
+                mi.Command = command ?? mi.Command;
+                mi.SubMenu = subMenu ?? mi.SubMenu;
+                mi.BindKeyToApplication = bindKeyToApplication ?? mi.BindKeyToApplication;
+                mi.Orientation = orientation ?? mi.Orientation;
+                mi.CommandView = commandView ?? mi.CommandView;
+                mi.AlignmentModes = alignmentModes ?? mi.AlignmentModes;
+                mi.MinimumKeyTextSize = minimumKeyTextSize ?? mi.MinimumKeyTextSize;
+            }
+        );
 
-    //public ViewBuilder<TParent> AddMenuBar(MenuBar menuBar, out MenuBarBuilder menuBarBuilder)
+    // public ViewBuilder<TParent> AddMenuBar(MenuBar menuBar, out MenuBarBuilder menuBarBuilder)
     //    => Add<MenuBar, MenuBarBuilder>(out _, out menuBarBuilder, m => m.Builder(), menuBar);
-    //public ViewBuilder<TParent> AddMenuBar(out MenuBar menuBarOut, out MenuBarBuilder menuBarBuilder, string? text = null)
+    // public ViewBuilder<TParent> AddMenuBar(out MenuBar menuBarOut, out MenuBarBuilder menuBarBuilder, string? text = null)
     //    => Add(out menuBarOut, out menuBarBuilder, m => m.Builder(), new(),
     //        bar => {
     //            bar.Text = text ?? bar.Text;
@@ -1009,7 +1032,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     Adds a <see cref="MenuBar" /> to the parent view.
     /// </summary>
     /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="MenuBar" /> instance</returns>
-    public ViewBuilder<TParent> AddMenuBar(MenuBar menuBar) => Add(out _, menuBar);
+    public ViewBuilder<TParent> AddMenuBar(MenuBar menuBar) => Add(out MenuBar _, menuBar);
 
     /// <inheritdoc cref="AddMenuBar(MenuBar)" path="/summary" />
     /// <param name="menuBarOut">
@@ -1022,19 +1045,21 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     <inheritdoc cref="MenuBar.Key" path="/summary" />
     /// </param>
     /// <inheritdoc cref="AddMenuBar(MenuBar)" path="/returns" />
-    public ViewBuilder<TParent> AddMenuBar(out MenuBar menuBarOut, MenuBarItem[]? menus = null, Key? key = null) => Add(
-        out menuBarOut,
-        new(),
-        menuBar => {
-            menuBar.Menus = menus ?? [];
-            menuBar.Key = key ?? menuBar.Key;
-        });
+    public ViewBuilder<TParent> AddMenuBar(out MenuBar menuBarOut, MenuBarItem[]? menus = null, Key? key = null) =>
+        Add(
+            out menuBarOut,
+            child: new(),
+            configureBeforeAdd: menuBar =>
+            {
+                menuBar.Menus = menus ?? [];
+                menuBar.Key = key ?? menuBar.Key;
+            });
 
     /// <summary>
     ///     Adds a <see cref="MenuBarItem" /> to the parent view.
     /// </summary>
     /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="MenuBarItem" /> instance</returns>
-    public ViewBuilder<TParent> AddMenuBarItem(MenuBarItem menuBarItem) => Add(out _, menuBarItem);
+    public ViewBuilder<TParent> AddMenuBarItem(MenuBarItem menuBarItem) => Add(out MenuBarItem _, menuBarItem);
 
     /// <inheritdoc cref="AddMenuBarItem(MenuBarItem)" path="/summary" />
     /// <param name="menuBarItemOut">
@@ -1057,18 +1082,19 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         View? targetView = null,
         Command? command = null,
         PopoverMenu? popoverMenu = null
-    )
-        => Add(
+    ) =>
+        Add(
             out menuBarItemOut,
-            new(),
-            menuBarItem => {
+            child: new(),
+            configureBeforeAdd: menuBarItem =>
+            {
                 menuBarItem.Title = commandText ?? $"Menu Bar Item {GetView().SubViews.Count}";
                 menuBarItem.TargetView = targetView ?? menuBarItem.TargetView;
                 menuBarItem.Command = command ?? menuBarItem.Command;
                 menuBarItem.PopoverMenu = popoverMenu ?? menuBarItem.PopoverMenu;
             });
 
-    public ViewBuilder<TParent> AddPopoverMenu(PopoverMenu popoverMenu) => Add(out _, popoverMenu);
+    public ViewBuilder<TParent> AddPopoverMenu(PopoverMenu popoverMenu) => Add(out PopoverMenu _, popoverMenu);
 
     /// <inheritdoc cref="AddPopoverMenu(PopoverMenu)" path="/summary" />
     /// <param name="popoverMenuOut">
@@ -1089,20 +1115,22 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         Menu? root = null,
         Key? key = null,
         MouseFlags? mouseFlags = null
-    ) => Add(
-        out popoverMenuOut,
-        root is { } ? new(root) : new(),
-        pm => {
-            pm.Key = key ?? pm.Key;
-            pm.MouseFlags = mouseFlags ?? pm.MouseFlags;
-        }
-    );
+    ) =>
+        Add(
+            out popoverMenuOut,
+            child: root is not null ? new(root) : new(),
+            configureBeforeAdd: pm =>
+            {
+                pm.Key = key ?? pm.Key;
+                pm.MouseFlags = mouseFlags ?? pm.MouseFlags;
+            }
+        );
 
     #endregion
 
     #region NumericUpDown
 
-    public ViewBuilder<TParent> AddNumericUpDown<TNumericType>(NumericUpDown<TNumericType> numericUpDown) where TNumericType : notnull => Add(out _, numericUpDown);
+    public ViewBuilder<TParent> AddNumericUpDown<TNumericType>(NumericUpDown<TNumericType> numericUpDown) where TNumericType : notnull => Add(out NumericUpDown<TNumericType> _, numericUpDown);
 
     /// <inheritdoc cref="AddNumericUpDown{TNumericType}(NumericUpDown{TNumericType})" path="/summary" />
     /// <param name="numericUpDownOut">
@@ -1131,28 +1159,30 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         TNumericType? step = default,
         TNumericType? max = default,
         TNumericType? min = default
-    ) where TNumericType : notnull
-        => Add(
+    ) where TNumericType : notnull =>
+        Add(
             out numericUpDownOut,
-            new(),
-            nud => {
-                if (value is { })
+            child: new(),
+            configureBeforeAdd: nud =>
+            {
+                if (value is not null)
                 {
                     nud.Value = value;
                 }
 
-                if (format is { })
+                if (format is not null)
                 {
                     nud.Format = format;
                 }
 
-                if (step is { })
+                if (step is not null)
                 {
                     nud.Increment = step;
                 }
 
                 nud.Max = max;
                 nud.Min = min;
+                
             }
         );
 
@@ -1164,7 +1194,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     Adds a <see cref="ProgressBar" /> to the parent view.
     /// </summary>
     /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="ProgressBar" /> instance</returns>
-    public ViewBuilder<TParent> AddProgressBar(ProgressBar progressBar) => Add(out _, progressBar);
+    public ViewBuilder<TParent> AddProgressBar(ProgressBar progressBar) => Add(out ProgressBar _, progressBar);
 
     /// <inheritdoc cref="AddProgressBar(ProgressBar)" path="/summary" />
     /// <param name="progressBarOut">
@@ -1197,23 +1227,25 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         ProgressBarStyle? style = null,
         Rune? segmentCharacter = null,
         bool? bidirectionalMarquee = null
-    ) => Add(
-        out progressBarOut,
-        new(),
-        progressBar => {
-            progressBar.Text = text ?? $"Progress Bar {GetView().SubViews.Count}";
-            progressBar.Fraction = fraction ?? progressBar.Fraction;
-            progressBar.ProgressBarFormat = format ?? progressBar.ProgressBarFormat;
-            progressBar.ProgressBarStyle = style ?? progressBar.ProgressBarStyle;
-            progressBar.SegmentCharacter = segmentCharacter ?? progressBar.SegmentCharacter;
-            progressBar.BidirectionalMarquee = bidirectionalMarquee ?? progressBar.BidirectionalMarquee;
-        });
+    ) =>
+        Add(
+            out progressBarOut,
+            child: new(),
+            configureBeforeAdd: progressBar =>
+            {
+                progressBar.Text = text ?? $"Progress Bar {GetView().SubViews.Count}";
+                progressBar.Fraction = fraction ?? progressBar.Fraction;
+                progressBar.ProgressBarFormat = format ?? progressBar.ProgressBarFormat;
+                progressBar.ProgressBarStyle = style ?? progressBar.ProgressBarStyle;
+                progressBar.SegmentCharacter = segmentCharacter ?? progressBar.SegmentCharacter;
+                progressBar.BidirectionalMarquee = bidirectionalMarquee ?? progressBar.BidirectionalMarquee;
+            });
 
     #endregion
 
     #region ScrollBar
 
-    public ViewBuilder<TParent> AddScrollBar(ScrollBar scrollBar) => Add(out _, scrollBar);
+    public ViewBuilder<TParent> AddScrollBar(ScrollBar scrollBar) => Add(out ScrollBar _, scrollBar);
 
     /// <inheritdoc cref="AddScrollBar(ScrollBar)" path="/summary" />
     /// <param name="scrollBarOut">
@@ -1246,24 +1278,26 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         int? scrollableContentSize = null,
         int? value = null,
         ScrollBarVisibilityMode? visibilityMode = null
-    ) => Add(
-        out scrollBarOut,
-        new(),
-        sb => {
-            sb.Orientation = orientation ?? sb.Orientation;
-            sb.Increment = increment ?? sb.Increment;
-            sb.VisibleContentSize = visibleContentSize ?? sb.VisibleContentSize;
-            sb.ScrollableContentSize = scrollableContentSize ?? sb.ScrollableContentSize;
-            sb.Value = value ?? sb.Value;
-            sb.VisibilityMode = visibilityMode ?? sb.VisibilityMode;
-        }
-    );
+    ) =>
+        Add(
+            out scrollBarOut,
+            child: new(),
+            configureBeforeAdd: sb =>
+            {
+                sb.Orientation = orientation ?? sb.Orientation;
+                sb.Increment = increment ?? sb.Increment;
+                sb.VisibleContentSize = visibleContentSize ?? sb.VisibleContentSize;
+                sb.ScrollableContentSize = scrollableContentSize ?? sb.ScrollableContentSize;
+                sb.Value = value ?? sb.Value;
+                sb.VisibilityMode = visibilityMode ?? sb.VisibilityMode;
+            }
+        );
 
     #endregion
 
     #region ScrollSlider
 
-    public ViewBuilder<TParent> AddScrollSlider(ScrollSlider scrollSlider) => Add(out _, scrollSlider);
+    public ViewBuilder<TParent> AddScrollSlider(ScrollSlider scrollSlider) => Add(out ScrollSlider _, scrollSlider);
 
     /// <inheritdoc cref="AddScrollSlider(ScrollSlider)" path="/summary" />
     /// <param name="scrollSliderOut">
@@ -1292,23 +1326,25 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         int? position = null,
         int? visibleContentSize = null,
         int? sliderPadding = null
-    ) => Add(
-        out scrollSliderOut,
-        new(),
-        ss => {
-            ss.Orientation = orientation ?? ss.Orientation;
-            ss.Size = size ?? ss.Size;
-            ss.Position = position ?? ss.Position;
-            ss.VisibleContentSize = visibleContentSize ?? ss.VisibleContentSize;
-            ss.SliderPadding = sliderPadding ?? ss.SliderPadding;
-        }
-    );
+    ) =>
+        Add(
+            out scrollSliderOut,
+            child: new(),
+            configureBeforeAdd: ss =>
+            {
+                ss.Orientation = orientation ?? ss.Orientation;
+                ss.Size = size ?? ss.Size;
+                ss.Position = position ?? ss.Position;
+                ss.VisibleContentSize = visibleContentSize ?? ss.VisibleContentSize;
+                ss.SliderPadding = sliderPadding ?? ss.SliderPadding;
+            }
+        );
 
     #endregion
 
     #region Shortcut
 
-    public ViewBuilder<TParent> AddShortcut(Shortcut shortcut) => Add(out _, shortcut);
+    public ViewBuilder<TParent> AddShortcut(Shortcut shortcut) => Add(out Shortcut _, shortcut);
 
     /// <inheritdoc cref="AddShortcut(Shortcut)" path="/summary" />
     /// <param name="shortcutOut">
@@ -1361,23 +1397,25 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         Command? command = null,
         View? targetView = null,
         int? minimumKeyTextSize = null
-    ) => Add(
-        out shortcutOut,
-        new(),
-        sc => {
-            sc.Text = text ?? $"Shortcut {GetView().SubViews.Count}";
-            sc.Key = key ?? sc.Key;
-            sc.Action = action ?? sc.Action;
-            sc.HelpText = helpText ?? sc.HelpText;
-            sc.BindKeyToApplication = bindKeyToApplication ?? sc.BindKeyToApplication;
-            sc.Orientation = orientation ?? sc.Orientation;
-            sc.CommandView = commandView ?? sc.CommandView;
-            sc.AlignmentModes = alignmentModes ?? sc.AlignmentModes;
-            sc.Command = command ?? sc.Command;
-            sc.TargetView = targetView ?? sc.TargetView;
-            sc.MinimumKeyTextSize = minimumKeyTextSize ?? sc.MinimumKeyTextSize;
-        }
-    );
+    ) =>
+        Add(
+            out shortcutOut,
+            child: new(),
+            configureBeforeAdd: sc =>
+            {
+                sc.Text = text ?? $"Shortcut {GetView().SubViews.Count}";
+                sc.Key = key ?? sc.Key;
+                sc.Action = action ?? sc.Action;
+                sc.HelpText = helpText ?? sc.HelpText;
+                sc.BindKeyToApplication = bindKeyToApplication ?? sc.BindKeyToApplication;
+                sc.Orientation = orientation ?? sc.Orientation;
+                sc.CommandView = commandView ?? sc.CommandView;
+                sc.AlignmentModes = alignmentModes ?? sc.AlignmentModes;
+                sc.Command = command ?? sc.Command;
+                sc.TargetView = targetView ?? sc.TargetView;
+                sc.MinimumKeyTextSize = minimumKeyTextSize ?? sc.MinimumKeyTextSize;
+            }
+        );
 
     /// <inheritdoc cref="AddShortcut(Shortcut)" path="/summary" />
     /// <param name="text">
@@ -1426,112 +1464,105 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         Command? command = null,
         View? targetView = null,
         int? minimumKeyTextSize = null
-    ) => AddShortcut(
-        out _,
-        text,
-        key,
-        action,
-        helpText,
-        bindKeyToApplication,
-        orientation,
-        commandView,
-        alignmentModes,
-        command,
-        targetView,
-        minimumKeyTextSize
-    );
+    ) =>
+        AddShortcut(
+            out Shortcut _,
+            text,
+            key,
+            action,
+            helpText,
+            bindKeyToApplication,
+            orientation,
+            commandView,
+            alignmentModes,
+            command,
+            targetView,
+            minimumKeyTextSize
+        );
 
     #endregion
 
-    #region Linear Range
+    #region Linear LinearSelector
 
-    public ViewBuilder<TParent> AddLinearRange(LinearRange linearRange) => Add(out _, linearRange);
-    public ViewBuilder<TParent> AddLinearRange<T>(LinearRange<T> linearRange) => Add(out _, linearRange);
+    public ViewBuilder<TParent> AddLinearSelector(LinearSelector linearSelector) => Add(out LinearSelector _, linearSelector);
+    public ViewBuilder<TParent> AddLinearSelector<T>(LinearSelector<T> linearSelector) => Add(out LinearSelector<T> _, linearSelector);
 
-    /// <inheritdoc cref="AddLinearRange{T}(LinearRange{T})" path="/summary" />
-    /// <param name="linearRangeOut">
-    ///     The newly added <see cref="LinearRange{T}" /> instance
+    /// <inheritdoc cref="AddLinearSelector{T}(LinearSelector{T})" path="/summary" />
+    /// <param name="linearSelector">
+    ///     The newly added <see cref="LinearSelector{T}" /> instance
     /// </param>
     /// <param name="options">
-    ///     <inheritdoc cref="LinearRange{T}.Options" path="/summary" />
+    ///     <inheritdoc cref="LinearSelector{T}.Options" path="/summary" />
     /// </param>
     /// <param name="orientation">
-    ///     <inheritdoc cref="LinearRange{T}.Orientation" path="/summary" />
+    ///     <inheritdoc cref="LinearSelector{T}.Orientation" path="/summary" />
     /// </param>
     /// <param name="allowEmpty">
-    ///     <inheritdoc cref="LinearRange{T}.AllowEmpty" path="/summary" />
-    /// </param>
-    /// <param name="rangeAllowSingle">
-    ///     <inheritdoc cref="LinearRange{T}.RangeAllowSingle" path="/summary" />
+    ///     <inheritdoc cref="LinearSelector{T}.AllowEmpty" path="/summary" />
     /// </param>
     /// <param name="showLegends">
-    ///     <inheritdoc cref="LinearRange{T}.ShowLegends" path="/summary" />
+    ///     <inheritdoc cref="LinearSelector{T}.ShowLegends" path="/summary" />
     /// </param>
     /// <param name="showEndSpacing">
-    ///     <inheritdoc cref="LinearRange{T}.ShowEndSpacing" path="/summary" />
+    ///     <inheritdoc cref="LinearSelector{T}.ShowEndSpacing" path="/summary" />
     /// </param>
     /// <param name="text">
-    ///     <inheritdoc cref="LinearRange{T}.Text" path="/summary" />
-    /// </param>
-    /// <param name="type">
-    ///     <inheritdoc cref="LinearRange{T}.Type" path="/summary" />
+    ///     <inheritdoc cref="LinearSelector{T}.Text" path="/summary" />
     /// </param>
     /// <param name="legendsOrientation">
-    ///     <inheritdoc cref="LinearRange{T}.LegendsOrientation" path="/summary" />
+    ///     <inheritdoc cref="LinearSelector{T}.LegendsOrientation" path="/summary" />
     /// </param>
     /// <param name="style">
-    ///     <inheritdoc cref="LinearRange{T}.Style" path="/summary" />
+    ///     <inheritdoc cref="LinearSelector{T}.Style" path="/summary" />
     /// </param>
     /// <param name="minimumInnerSpacing">
-    ///     <inheritdoc cref="LinearRange{T}.MinimumInnerSpacing" path="/summary" />
+    ///     <inheritdoc cref="LinearSelector{T}.MinimumInnerSpacing" path="/summary" />
     /// </param>
     /// <param name="useMinimumSize">
-    ///     <inheritdoc cref="LinearRange{T}.UseMinimumSize" path="/summary" />
+    ///     <inheritdoc cref="LinearSelector{T}.UseMinimumSize" path="/summary" />
     /// </param>
     /// <param name="focusedOption">
-    ///     <inheritdoc cref="LinearRange{T}.FocusedOption" path="/summary" />
+    ///     <inheritdoc cref="LinearSelector{T}.FocusedOption" path="/summary" />
     /// </param>
-    /// <inheritdoc cref="AddLinearRange{T}(LinearRange{T})" path="/returns" />
-    public ViewBuilder<TParent> AddLinearRange<T>(
-        out LinearRange<T> linearRangeOut,
+    /// <inheritdoc cref="AddLinearSelector{T}(LinearSelector{T})" path="/returns" />
+    public ViewBuilder<TParent> AddLinearSelector<T>(
+        out LinearSelector<T> linearSelector,
         List<LinearRangeOption<T>>? options = null,
         Orientation? orientation = null,
         bool? allowEmpty = null,
-        bool? rangeAllowSingle = null,
         bool? showLegends = null,
         bool? showEndSpacing = null,
         string? text = null,
-        LinearRangeType? type = null,
         Orientation? legendsOrientation = null,
         LinearRangeStyle? style = null,
         int? minimumInnerSpacing = null,
         bool? useMinimumSize = null,
         int? focusedOption = null
-    ) => Add(
-        out linearRangeOut,
-        new(),
-        lr => {
-            lr.Options = options ?? lr.Options;
-            lr.Orientation = orientation ?? lr.Orientation;
-            lr.AllowEmpty = allowEmpty ?? lr.AllowEmpty;
-            lr.RangeAllowSingle = rangeAllowSingle ?? lr.RangeAllowSingle;
-            lr.ShowLegends = showLegends ?? lr.ShowLegends;
-            lr.ShowEndSpacing = showEndSpacing ?? lr.ShowEndSpacing;
-            lr.Text = text ?? lr.Text;
-            lr.Type = type ?? lr.Type;
-            lr.LegendsOrientation = legendsOrientation ?? lr.LegendsOrientation;
-            lr.Style = style ?? lr.Style;
-            lr.MinimumInnerSpacing = minimumInnerSpacing ?? lr.MinimumInnerSpacing;
-            lr.UseMinimumSize = useMinimumSize ?? lr.UseMinimumSize;
-            lr.FocusedOption = focusedOption ?? lr.FocusedOption;
-        }
-    );
+    ) =>
+        Add(
+            out linearSelector,
+            child: new(),
+            configureBeforeAdd: lr =>
+            {
+                lr.Options = options ?? lr.Options;
+                lr.Orientation = orientation ?? lr.Orientation;
+                lr.AllowEmpty = allowEmpty ?? lr.AllowEmpty;
+                lr.ShowLegends = showLegends ?? lr.ShowLegends;
+                lr.ShowEndSpacing = showEndSpacing ?? lr.ShowEndSpacing;
+                lr.Text = text ?? lr.Text;
+                lr.LegendsOrientation = legendsOrientation ?? lr.LegendsOrientation;
+                lr.Style = style ?? lr.Style;
+                lr.MinimumInnerSpacing = minimumInnerSpacing ?? lr.MinimumInnerSpacing;
+                lr.UseMinimumSize = useMinimumSize ?? lr.UseMinimumSize;
+                lr.FocusedOption = focusedOption ?? lr.FocusedOption;
+            }
+        );
 
     #endregion
 
     #region SpinnerView
 
-    public ViewBuilder<TParent> AddSpinnerView(SpinnerView spinnerView) => Add(out _, spinnerView);
+    public ViewBuilder<TParent> AddSpinnerView(SpinnerView spinnerView) => Add(out SpinnerView _, spinnerView);
 
     /// <inheritdoc cref="AddSpinnerView(SpinnerView)" path="/summary" />
     /// <param name="spinnerViewOut">
@@ -1564,24 +1595,26 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         bool? spinBounce = null,
         bool? spinReverse = null,
         string[]? sequence = null
-    ) => Add(
-        out spinnerViewOut,
-        new(),
-        sv => {
-            sv.Style = style ?? sv.Style;
-            sv.AutoSpin = autoSpin ?? sv.AutoSpin;
-            sv.SpinDelay = spinDelay ?? sv.SpinDelay;
-            sv.SpinBounce = spinBounce ?? sv.SpinBounce;
-            sv.SpinReverse = spinReverse ?? sv.SpinReverse;
-            sv.Sequence = sequence ?? sv.Sequence;
-        }
-    );
+    ) =>
+        Add(
+            out spinnerViewOut,
+            child: new(),
+            configureBeforeAdd: sv =>
+            {
+                sv.Style = style ?? sv.Style;
+                sv.AutoSpin = autoSpin ?? sv.AutoSpin;
+                sv.SpinDelay = spinDelay ?? sv.SpinDelay;
+                sv.SpinBounce = spinBounce ?? sv.SpinBounce;
+                sv.SpinReverse = spinReverse ?? sv.SpinReverse;
+                sv.Sequence = sequence ?? sv.Sequence;
+            }
+        );
 
     #endregion
 
     #region StatusBar
 
-    public ViewBuilder<TParent> AddStatusBar(StatusBar statusBar) => Add(out _, statusBar);
+    public ViewBuilder<TParent> AddStatusBar(StatusBar statusBar) => Add(out StatusBar _, statusBar);
 
     /// <inheritdoc cref="AddStatusBar(StatusBar)" path="/summary" />
     /// <param name="statusBarOut">
@@ -1600,14 +1633,16 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         IEnumerable<Shortcut>? shortcuts = null,
         Orientation? orientation = null,
         AlignmentModes? alignmentModes = null
-    ) => Add(
-        out statusBarOut,
-        shortcuts is { } ? new(shortcuts) : new(),
-        sb => {
-            sb.Orientation = orientation ?? sb.Orientation;
-            sb.AlignmentModes = alignmentModes ?? sb.AlignmentModes;
-        }
-    );
+    ) =>
+        Add(
+            out statusBarOut,
+            child: shortcuts is not null ? new(shortcuts) : new(),
+            configureBeforeAdd: sb =>
+            {
+                sb.Orientation = orientation ?? sb.Orientation;
+                sb.AlignmentModes = alignmentModes ?? sb.AlignmentModes;
+            }
+        );
 
     /// <inheritdoc cref="AddStatusBar(StatusBar)" path="/summary" />
     /// <param name="statusBarOut">
@@ -1632,21 +1667,23 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         Action<ViewBuilder<StatusBar>> configureShortcuts,
         Orientation? orientation = null,
         AlignmentModes? alignmentModes = null
-    ) => Add(
-        out statusBarOut,
-        new(),
-        sb => {
-            sb.Orientation = orientation ?? sb.Orientation;
-            sb.AlignmentModes = alignmentModes ?? sb.AlignmentModes;
-            configureShortcuts(sb.Builder());
-        }
-    );
+    ) =>
+        Add(
+            out statusBarOut,
+            child: new(),
+            configureBeforeAdd: sb =>
+            {
+                sb.Orientation = orientation ?? sb.Orientation;
+                sb.AlignmentModes = alignmentModes ?? sb.AlignmentModes;
+                configureShortcuts(obj: sb.Builder());
+            }
+        );
 
     #endregion
 
     #region TreeView
 
-    public ViewBuilder<TParent> AddTreeView(TreeView treeView) => Add(out _, treeView);
+    public ViewBuilder<TParent> AddTreeView(TreeView treeView) => Add(out TreeView _, treeView);
 
     /// <inheritdoc cref="AddTreeView(TreeView)" path="/summary" />
     /// <param name="treeViewOut">
@@ -1670,12 +1707,6 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     /// <param name="selectedObject">
     ///     <inheritdoc cref="TreeView{T}.SelectedObject" path="/summary" />
     /// </param>
-    /// <param name="objectActivationButton">
-    ///     <inheritdoc cref="TreeView{T}.ObjectActivationButton" path="/summary" />
-    /// </param>
-    /// <param name="objectActivationKey">
-    ///     <inheritdoc cref="TreeView{T}.ObjectActivationKey" path="/summary" />
-    /// </param>
     /// <param name="scrollOffsetHorizontal">
     ///     <inheritdoc cref="TreeView{T}.ScrollOffsetHorizontal" path="/summary" />
     /// </param>
@@ -1691,35 +1722,29 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         ITreeBuilder<ITreeNode>? treeBuilder = null,
         TreeStyle? style = null,
         ITreeNode? selectedObject = null,
-        MouseFlags? objectActivationButton = null,
-        KeyCode? objectActivationKey = null,
         int? scrollOffsetHorizontal = null,
         int? scrollOffsetVertical = null
-    ) => Add(
-        out treeViewOut,
-        new(),
-        tv => {
-            tv.MultiSelect = multiSelect ?? tv.MultiSelect;
-            tv.AllowLetterBasedNavigation = allowLetterBasedNavigation ?? tv.AllowLetterBasedNavigation;
-            tv.MaxDepth = maxDepth ?? tv.MaxDepth;
-            tv.TreeBuilder = treeBuilder ?? tv.TreeBuilder;
-            tv.Style = style ?? tv.Style;
-
-            if (selectedObject is { })
+    ) =>
+        Add(
+            out treeViewOut,
+            child: new(),
+            configureBeforeAdd: tv =>
             {
-                tv.SelectedObject = selectedObject;
-            }
+                tv.MultiSelect = multiSelect ?? tv.MultiSelect;
+                tv.AllowLetterBasedNavigation = allowLetterBasedNavigation ?? tv.AllowLetterBasedNavigation;
+                tv.MaxDepth = maxDepth ?? tv.MaxDepth;
+                tv.TreeBuilder = treeBuilder ?? tv.TreeBuilder;
+                tv.Style = style ?? tv.Style;
 
-            if (objectActivationButton is { })
-            {
-                tv.ObjectActivationButton = objectActivationButton;
-            }
+                if (selectedObject is not null)
+                {
+                    tv.SelectedObject = selectedObject;
+                }
 
-            tv.ObjectActivationKey = objectActivationKey ?? tv.ObjectActivationKey;
-            tv.ScrollOffsetHorizontal = scrollOffsetHorizontal ?? tv.ScrollOffsetHorizontal;
-            tv.ScrollOffsetVertical = scrollOffsetVertical ?? tv.ScrollOffsetVertical;
-        }
-    );
+                tv.ScrollOffsetHorizontal = scrollOffsetHorizontal ?? tv.ScrollOffsetHorizontal;
+                tv.ScrollOffsetVertical = scrollOffsetVertical ?? tv.ScrollOffsetVertical;
+            }
+        );
 
     #endregion
 
@@ -1729,7 +1754,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     Adds a <see cref="Window" /> to the parent view.
     /// </summary>
     /// <returns>The newly added <see cref="Window" /> instance.</returns>
-    public ViewBuilder<TParent> AddWindow(Window window) => Add(out _, window);
+    public ViewBuilder<TParent> AddWindow(Window window) => Add(out Window _, window);
 
     /// <inheritdoc cref="AddWindow(Window)" path="/summary" />
     /// <param name="windowOut">The newly added <see cref="Window" /> instance</param>
@@ -1743,8 +1768,9 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
 
         ViewBuilder<TParent> parentWithWindow = Add(
             out windowOut,
-            new(),
-            window => {
+            child: new(),
+            configureBeforeAdd: window =>
+            {
                 window.Title = title ?? window.Title;
 
                 if (views == null || views.Count == 0)
@@ -1756,7 +1782,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
 
                 foreach (View view in views)
                 {
-                    builder.Add(out View outView, view);
+                    builder.Add(addedChild: out View outView, view);
                     tempAddedViews.Add(outView);
                 }
             });
@@ -1769,7 +1795,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
 
     #region Wizard
 
-    public ViewBuilder<TParent> AddWizard(Wizard wizard) => Add(out _, wizard);
+    public ViewBuilder<TParent> AddWizard(Wizard wizard) => Add(out Wizard _, wizard);
 
     /// <inheritdoc cref="AddWizard(Wizard)" path="/summary" />
     /// <param name="wizardOut">
@@ -1796,17 +1822,19 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         Button[]? buttons = null,
         Alignment? buttonAlignment = null,
         AlignmentModes? buttonAlignmentModes = null
-    ) => Add(
-        out wizardOut,
-        new(),
-        wiz => {
-            wiz.Title = title ?? wiz.Title;
-            wiz.CurrentStep = currentStep ?? wiz.CurrentStep;
-            wiz.Buttons = buttons ?? wiz.Buttons;
-            wiz.ButtonAlignment = buttonAlignment ?? wiz.ButtonAlignment;
-            wiz.ButtonAlignmentModes = buttonAlignmentModes ?? wiz.ButtonAlignmentModes;
-        }
-    );
+    ) =>
+        Add(
+            out wizardOut,
+            child: new(),
+            configureBeforeAdd: wiz =>
+            {
+                wiz.Title = title ?? wiz.Title;
+                wiz.CurrentStep = currentStep ?? wiz.CurrentStep;
+                wiz.Buttons = buttons ?? wiz.Buttons;
+                wiz.ButtonAlignment = buttonAlignment ?? wiz.ButtonAlignment;
+                wiz.ButtonAlignmentModes = buttonAlignmentModes ?? wiz.ButtonAlignmentModes;
+            }
+        );
 
     #endregion
 
@@ -1816,7 +1844,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     Adds a <see cref="TextField" /> to the parent view.
     /// </summary>
     /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="TextField" /> instance</returns>
-    public ViewBuilder<TParent> AddTextField(TextField textField) => Add(out _, textField);
+    public ViewBuilder<TParent> AddTextField(TextField textField) => Add(out TextField _, textField);
 
     /// <inheritdoc cref="AddTextField(TextField)" path="/summary" />
     /// <param name="textFieldOut">
@@ -1849,18 +1877,20 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         int? insertionPoint = null,
         bool? selectWordOnlyOnDoubleClick = null,
         bool? useSameRuneTypeForWords = null
-    ) => Add(
-        out textFieldOut,
-        new(),
-        tf => {
-            tf.Text = text ?? tf.Text;
-            tf.ReadOnly = readOnly ?? tf.ReadOnly;
-            tf.Secret = secret ?? tf.Secret;
-            tf.InsertionPoint = insertionPoint ?? tf.InsertionPoint;
-            tf.SelectWordOnlyOnDoubleClick = selectWordOnlyOnDoubleClick ?? tf.SelectWordOnlyOnDoubleClick;
-            tf.UseSameRuneTypeForWords = useSameRuneTypeForWords ?? tf.UseSameRuneTypeForWords;
-        }
-    );
+    ) =>
+        Add(
+            out textFieldOut,
+            child: new(),
+            configureBeforeAdd: tf =>
+            {
+                tf.Text = text ?? tf.Text;
+                tf.ReadOnly = readOnly ?? tf.ReadOnly;
+                tf.Secret = secret ?? tf.Secret;
+                tf.InsertionPoint = insertionPoint ?? tf.InsertionPoint;
+                tf.SelectWordOnlyOnDoubleClick = selectWordOnlyOnDoubleClick ?? tf.SelectWordOnlyOnDoubleClick;
+                tf.UseSameRuneTypeForWords = useSameRuneTypeForWords ?? tf.UseSameRuneTypeForWords;
+            }
+        );
 
     #endregion
 
@@ -1870,7 +1900,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     Adds a <see cref="TextView" /> to the parent view.
     /// </summary>
     /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="TextView" /> instance</returns>
-    public ViewBuilder<TParent> AddTextView(TextView textView) => Add(out _, textView);
+    public ViewBuilder<TParent> AddTextView(TextView textView) => Add(out TextView _, textView);
 
     /// <inheritdoc cref="AddTextView(TextView)" path="/summary" />
     /// <param name="textViewOut">
@@ -1923,23 +1953,25 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         bool? inheritsPreviousAttribute = null,
         bool? selectWordOnlyOnDoubleClick = null,
         bool? useSameRuneTypeForWords = null
-    ) => Add(
-        out textViewOut,
-        new(),
-        tv => {
-            tv.Text = text ?? tv.Text;
-            tv.ReadOnly = readOnly ?? tv.ReadOnly;
-            tv.Multiline = multiline ?? tv.Multiline;
-            tv.WordWrap = wordWrap ?? tv.WordWrap;
-            tv.TabWidth = tabWidth ?? tv.TabWidth;
-            tv.ScrollBars = scrollBars ?? tv.ScrollBars;
-            tv.EnterKeyAddsLine = enterKeyAddsLine ?? tv.EnterKeyAddsLine;
-            tv.TabKeyAddsTab = tabKeyAddsTab ?? tv.TabKeyAddsTab;
-            tv.InheritsPreviousAttribute = inheritsPreviousAttribute ?? tv.InheritsPreviousAttribute;
-            tv.SelectWordOnlyOnDoubleClick = selectWordOnlyOnDoubleClick ?? tv.SelectWordOnlyOnDoubleClick;
-            tv.UseSameRuneTypeForWords = useSameRuneTypeForWords ?? tv.UseSameRuneTypeForWords;
-        }
-    );
+    ) =>
+        Add(
+            out textViewOut,
+            child: new(),
+            configureBeforeAdd: tv =>
+            {
+                tv.Text = text ?? tv.Text;
+                tv.ReadOnly = readOnly ?? tv.ReadOnly;
+                tv.Multiline = multiline ?? tv.Multiline;
+                tv.WordWrap = wordWrap ?? tv.WordWrap;
+                tv.TabWidth = tabWidth ?? tv.TabWidth;
+                tv.ScrollBars = scrollBars ?? tv.ScrollBars;
+                tv.EnterKeyAddsLine = enterKeyAddsLine ?? tv.EnterKeyAddsLine;
+                tv.TabKeyAddsTab = tabKeyAddsTab ?? tv.TabKeyAddsTab;
+                tv.InheritsPreviousAttribute = inheritsPreviousAttribute ?? tv.InheritsPreviousAttribute;
+                tv.SelectWordOnlyOnDoubleClick = selectWordOnlyOnDoubleClick ?? tv.SelectWordOnlyOnDoubleClick;
+                tv.UseSameRuneTypeForWords = useSameRuneTypeForWords ?? tv.UseSameRuneTypeForWords;
+            }
+        );
 
     #endregion
 
@@ -1949,7 +1981,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     Adds a <see cref="TableView" /> to the parent view.
     /// </summary>
     /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="TableView" /> instance</returns>
-    public ViewBuilder<TParent> AddTableView(TableView tableView) => Add(out _, tableView);
+    public ViewBuilder<TParent> AddTableView(TableView tableView) => Add(out TableView _, tableView);
 
     /// <inheritdoc cref="AddTableView(TableView)" path="/summary" />
     /// <param name="tableViewOut">
@@ -1966,12 +1998,6 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     /// </param>
     /// <param name="style">
     ///     <inheritdoc cref="TableView.Style" path="/summary" />
-    /// </param>
-    /// <param name="selectedRow">
-    ///     <inheritdoc cref="TableView.SelectedRow" path="/summary" />
-    /// </param>
-    /// <param name="selectedColumn">
-    ///     <inheritdoc cref="TableView.SelectedColumn" path="/summary" />
     /// </param>
     /// <param name="nullSymbol">
     ///     <inheritdoc cref="TableView.NullSymbol" path="/summary" />
@@ -1991,9 +2017,6 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     /// <param name="separatorSymbol">
     ///     <inheritdoc cref="TableView.SeparatorSymbol" path="/summary" />
     /// </param>
-    /// <param name="cellActivationKey">
-    ///     <inheritdoc cref="TableView.CellActivationKey" path="/summary" />
-    /// </param>
     /// <param name="useAllRowsForContentCalculation">
     ///     <inheritdoc cref="TableView.UseAllRowsForContentCalculation" path="/summary" />
     /// </param>
@@ -2004,117 +2027,238 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         bool? fullRowSelect = null,
         bool? multiSelect = null,
         TableStyle? style = null,
-        int? selectedRow = null,
-        int? selectedColumn = null,
         string? nullSymbol = null,
         int? maxCellWidth = null,
         int? minCellWidth = null,
         int? rowOffset = null,
         int? columnOffset = null,
         char? separatorSymbol = null,
-        KeyCode? cellActivationKey = null,
         bool? useAllRowsForContentCalculation = null
-    ) => Add(
-        out tableViewOut,
-        new(),
-        tv => {
-            tv.Table = table ?? tv.Table;
-            tv.FullRowSelect = fullRowSelect ?? tv.FullRowSelect;
-            tv.MultiSelect = multiSelect ?? tv.MultiSelect;
-            tv.Style = style ?? tv.Style;
-            tv.SelectedRow = selectedRow ?? tv.SelectedRow;
-            tv.SelectedColumn = selectedColumn ?? tv.SelectedColumn;
-            tv.NullSymbol = nullSymbol ?? tv.NullSymbol;
-            tv.MaxCellWidth = maxCellWidth ?? tv.MaxCellWidth;
-            tv.MinCellWidth = minCellWidth ?? tv.MinCellWidth;
-            tv.RowOffset = rowOffset ?? tv.RowOffset;
-            tv.ColumnOffset = columnOffset ?? tv.ColumnOffset;
-            tv.SeparatorSymbol = separatorSymbol ?? tv.SeparatorSymbol;
-            tv.CellActivationKey = cellActivationKey ?? tv.CellActivationKey;
-            tv.UseAllRowsForContentCalculation = useAllRowsForContentCalculation ?? tv.UseAllRowsForContentCalculation;
-        }
-    );
+    ) =>
+        Add(
+            out tableViewOut,
+            child: new(),
+            configureBeforeAdd: tv =>
+            {
+                tv.Table = table ?? tv.Table;
+                tv.FullRowSelect = fullRowSelect ?? tv.FullRowSelect;
+                tv.MultiSelect = multiSelect ?? tv.MultiSelect;
+                tv.Style = style ?? tv.Style;
+                tv.NullSymbol = nullSymbol ?? tv.NullSymbol;
+                tv.MaxCellWidth = maxCellWidth ?? tv.MaxCellWidth;
+                tv.MinCellWidth = minCellWidth ?? tv.MinCellWidth;
+                tv.RowOffset = rowOffset ?? tv.RowOffset;
+                tv.ColumnOffset = columnOffset ?? tv.ColumnOffset;
+                tv.SeparatorSymbol = separatorSymbol ?? tv.SeparatorSymbol;
+                tv.UseAllRowsForContentCalculation = useAllRowsForContentCalculation ?? tv.UseAllRowsForContentCalculation;
+            }
+        );
 
     #endregion
 
-    #region Tab
+    #region Tabs
 
     /// <summary>
-    ///     Adds a <see cref="Tab" /> to the parent view.
+    ///     Adds a <see cref="Tabs" /> to the parent view.
     /// </summary>
-    /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="Tab" /> instance</returns>
-    public ViewBuilder<TParent> AddTab(Tab tab) => Add(out _, tab);
+    /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="Tabs" /> instance</returns>
+    public ViewBuilder<TParent> AddTabs(Tabs tabs) => Add(out Tabs _, tabs);
 
-    /// <inheritdoc cref="AddTab(Tab)" path="/summary" />
-    /// <param name="tabOut">
-    ///     The newly added <see cref="Tab" /> instance
+    /// <summary>
+    ///     Adds a <see cref="Tabs" /> to the parent view and returns a specialized <see cref="TabsBuilder{TParent}" /> for fluent tab management.
+    /// </summary>
+    /// <param name="tabsOut">
+    ///     The newly added <see cref="Tabs" /> instance
     /// </param>
-    /// <param name="text">The text displayed by the Tab. Defaults to "Tab {n}" where n is the subview count.</param>
-    /// <param name="view">
-    ///     <inheritdoc cref="Tab.View" path="/summary" />
+    /// <param name="scrollOffset">
+    ///     <inheritdoc cref="Tabs.ScrollOffset" path="/summary" />
     /// </param>
-    /// <param name="displayText">
-    ///     <inheritdoc cref="Tab.DisplayText" path="/summary" />
+    /// <param name="tabDepth">
+    ///     <inheritdoc cref="Tabs.TabDepth" path="/summary" />
     /// </param>
-    /// <inheritdoc cref="AddTab(Tab)" path="/returns" />
-    public ViewBuilder<TParent> AddTab(
-        out Tab tabOut,
+    /// <param name="tabLineStyle">
+    ///     <inheritdoc cref="Tabs.TabLineStyle" path="/summary" />
+    /// </param>
+    /// <param name="tabSide">
+    ///     <inheritdoc cref="Tabs.TabSide" path="/summary" />
+    /// </param>
+    /// <param name="tabSpacing">
+    ///     <inheritdoc cref="Tabs.TabSpacing" path="/summary" />
+    /// </param>
+    /// <param name="value">
+    ///     <inheritdoc cref="Tabs.Value" path="/summary" />
+    /// </param>
+    /// <returns>A <see cref="TabsBuilder{TParent}" /> for fluent tab configuration.</returns>
+    public TabsBuilder<TParent> AddTabs(
+        out Tabs tabsOut,
+        int? scrollOffset = null,
+        int? tabDepth = null,
+        LineStyle? tabLineStyle = null,
+        Side? tabSide = null,
+        int? tabSpacing = null,
+        View? value = null
+    )
+    {
+        Add(
+            out tabsOut,
+            child: new(),
+            configureBeforeAdd: tabs =>
+            {
+                tabs.ScrollOffset = scrollOffset ?? tabs.ScrollOffset;
+                tabs.TabDepth = tabDepth ?? tabs.TabDepth;
+                tabs.TabLineStyle = tabLineStyle ?? tabs.TabLineStyle;
+                tabs.TabSide = tabSide ?? tabs.TabSide;
+                tabs.TabSpacing = tabSpacing ?? tabs.TabSpacing;
+                tabs.Value = value ?? tabs.Value;
+            });
+
+        return new TabsBuilder<TParent>(this, tabsOut);
+    }
+
+    #endregion
+
+    #region Link
+
+    /// <summary>
+    ///     Adds a <see cref="Link" /> to the parent view.
+    /// </summary>
+    /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="Link" /> instance</returns>
+    public ViewBuilder<TParent> AddLink(Link link) => Add(out Link _, link);
+
+    /// <inheritdoc cref="AddLink(Link)" path="/summary" />
+    /// <param name="linkOut">
+    ///     The newly added <see cref="Link" /> instance
+    /// </param>
+    /// <param name="text">
+    ///     <inheritdoc cref="View.Text" path="/summary" />
+    /// </param>
+    /// <param name="url">
+    ///     <inheritdoc cref="Link.Url" path="/summary" />
+    /// </param>
+    /// <inheritdoc cref="AddLink(Link)" path="/returns" />
+    public ViewBuilder<TParent> AddLink(
+        out Link linkOut,
         string? text = null,
-        View? view = null,
-        string? displayText = null
-    ) => Add(
-        out tabOut,
-        new(),
-        tab => {
-            tab.Text = text ?? $"Tab {parent.SubViews.Count}";
-            tab.View = view ?? tab.View;
-            tab.DisplayText = displayText ?? tab.DisplayText;
-        }
-    );
+        string? url = null
+    ) =>
+        Add(
+            out linkOut,
+            child: new(),
+            configureBeforeAdd: link =>
+            {
+                link.Text = text ?? link.Text;
+                link.Url = url ?? link.Url;
+            });
 
     #endregion
 
-    #region TabView
+    #region Markdown
 
     /// <summary>
-    ///     Adds a <see cref="TabView" /> to the parent view.
+    ///     Adds a <see cref="Markdown" /> to the parent view.
     /// </summary>
-    /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="TabView" /> instance</returns>
-    public ViewBuilder<TParent> AddTabView(TabView tabView) => Add(out _, tabView);
+    /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="Markdown" /> instance</returns>
+    public ViewBuilder<TParent> AddMarkdown(Markdown markdown) => Add(out Markdown _, markdown);
 
-    /// <inheritdoc cref="AddTabView(TabView)" path="/summary" />
-    /// <param name="tabViewOut">
-    ///     The newly added <see cref="TabView" /> instance
+    /// <inheritdoc cref="AddMarkdown(Markdown)" path="/summary" />
+    /// <param name="markdownOut">
+    ///     The newly added <see cref="Markdown" /> instance
     /// </param>
-    /// <param name="maxTabTextWidth">
-    ///     <inheritdoc cref="TabView.MaxTabTextWidth" path="/summary" />
+    /// <param name="text">
+    ///     <inheritdoc cref="Markdown.Text" path="/summary" />
     /// </param>
-    /// <param name="style">
-    ///     <inheritdoc cref="TabView.Style" path="/summary" />
+    /// <param name="showCopyButtons">
+    ///     <inheritdoc cref="Markdown.ShowCopyButtons" path="/summary" />
     /// </param>
-    /// <param name="selectedTab">
-    ///     <inheritdoc cref="TabView.SelectedTab" path="/summary" />
+    /// <param name="showHeadingPrefix">
+    ///     <inheritdoc cref="Markdown.ShowHeadingPrefix" path="/summary" />
     /// </param>
-    /// <param name="tabScrollOffset">
-    ///     <inheritdoc cref="TabView.TabScrollOffset" path="/summary" />
+    /// <param name="useThemeBackground">
+    ///     <inheritdoc cref="Markdown.UseThemeBackground" path="/summary" />
     /// </param>
-    /// <inheritdoc cref="AddTabView(TabView)" path="/returns" />
-    public ViewBuilder<TParent> AddTabView(
-        out TabView tabViewOut,
-        uint? maxTabTextWidth = null,
-        TabStyle? style = null,
-        Tab? selectedTab = null,
-        int? tabScrollOffset = null
-    ) => Add(
-        out tabViewOut,
-        new(),
-        tv => {
-            tv.MaxTabTextWidth = maxTabTextWidth ?? tv.MaxTabTextWidth;
-            tv.Style = style ?? tv.Style;
-            tv.SelectedTab = selectedTab ?? tv.SelectedTab;
-            tv.TabScrollOffset = tabScrollOffset ?? tv.TabScrollOffset;
-        }
-    );
+    /// <param name="enableSixelImages">
+    ///     <inheritdoc cref="Markdown.EnableSixelImages" path="/summary" />
+    /// </param>
+    /// <inheritdoc cref="AddMarkdown(Markdown)" path="/returns" />
+    public ViewBuilder<TParent> AddMarkdown(
+        out Markdown markdownOut,
+        string? text = null,
+        bool? showCopyButtons = null,
+        bool? showHeadingPrefix = null,
+        bool? useThemeBackground = null,
+        bool? enableSixelImages = null
+    ) =>
+        Add(
+            out markdownOut,
+            child: new(),
+            configureBeforeAdd: md =>
+            {
+                md.Text = text ?? md.Text;
+                md.ShowCopyButtons = showCopyButtons ?? md.ShowCopyButtons;
+                md.ShowHeadingPrefix = showHeadingPrefix ?? md.ShowHeadingPrefix;
+                md.UseThemeBackground = useThemeBackground ?? md.UseThemeBackground;
+                md.EnableSixelImages = enableSixelImages ?? md.EnableSixelImages;
+            });
+
+    #endregion
+
+    #region ImageView
+
+    /// <summary>
+    ///     Adds an <see cref="ImageView" /> to the parent view.
+    /// </summary>
+    /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="ImageView" /> instance</returns>
+    public ViewBuilder<TParent> AddImageView(ImageView imageView) => Add(out ImageView _, imageView);
+
+    /// <inheritdoc cref="AddImageView(ImageView)" path="/summary" />
+    /// <param name="imageViewOut">
+    ///     The newly added <see cref="ImageView" /> instance
+    /// </param>
+    /// <param name="image">
+    ///     <inheritdoc cref="ImageView.Image" path="/summary" />
+    /// </param>
+    /// <param name="useRasterGraphics">
+    ///     <inheritdoc cref="ImageView.UseRasterGraphics" path="/summary" />
+    /// </param>
+    /// <param name="useSixel">
+    ///     <inheritdoc cref="ImageView.UseSixel" path="/summary" />
+    /// </param>
+    /// <param name="zoomLevel">
+    ///     <inheritdoc cref="ImageView.ZoomLevel" path="/summary" />
+    /// </param>
+    /// <param name="allowSixelUpscaling">
+    ///     <inheritdoc cref="ImageView.AllowSixelUpscaling" path="/summary" />
+    /// </param>
+    /// <param name="maxSixelPaletteColors">
+    ///     <inheritdoc cref="ImageView.MaxSixelPaletteColors" path="/summary" />
+    /// </param>
+    /// <param name="useBackgroundRendering">
+    ///     <inheritdoc cref="ImageView.UseBackgroundRendering" path="/summary" />
+    /// </param>
+    /// <inheritdoc cref="AddImageView(ImageView)" path="/returns" />
+    public ViewBuilder<TParent> AddImageView(
+        out ImageView imageViewOut,
+        Color[,]? image = null,
+        bool? useRasterGraphics = null,
+        bool? useSixel = null,
+        double? zoomLevel = null,
+        bool? allowSixelUpscaling = null,
+        int? maxSixelPaletteColors = null,
+        bool? useBackgroundRendering = null
+    ) =>
+        Add(
+            out imageViewOut,
+            child: new(),
+            configureBeforeAdd: iv =>
+            {
+                iv.Image = image ?? iv.Image;
+                iv.UseRasterGraphics = useRasterGraphics ?? iv.UseRasterGraphics;
+                iv.UseSixel = useSixel ?? iv.UseSixel;
+                iv.ZoomLevel = zoomLevel ?? iv.ZoomLevel;
+                iv.AllowSixelUpscaling = allowSixelUpscaling ?? iv.AllowSixelUpscaling;
+                iv.MaxSixelPaletteColors = maxSixelPaletteColors ?? iv.MaxSixelPaletteColors;
+                iv.UseBackgroundRendering = useBackgroundRendering ?? iv.UseBackgroundRendering;
+            });
 
     #endregion
 
@@ -2124,7 +2268,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     Adds an <see cref="OptionSelector" /> to the parent view.
     /// </summary>
     /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="OptionSelector" /> instance</returns>
-    public ViewBuilder<TParent> AddOptionSelector(OptionSelector optionSelector) => Add(out _, optionSelector);
+    public ViewBuilder<TParent> AddOptionSelector(OptionSelector optionSelector) => Add(out OptionSelector _, optionSelector);
 
     /// <inheritdoc cref="AddOptionSelector(OptionSelector)" path="/summary" />
     /// <param name="optionSelectorOut">
@@ -2169,28 +2313,29 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         int? focusedItem = null,
         int? value = null,
         IReadOnlyList<int>? values = null
-    ) => Add(
-        out optionSelectorOut,
-        new(),
-        os => {
-            os.Text = text ?? os.Text;
-            os.Orientation = orientation ?? os.Orientation;
-            os.Styles = styles ?? os.Styles;
-            os.DoubleClickAccepts = doubleClickAccepts ?? os.DoubleClickAccepts;
-            os.Labels = labels ?? os.Labels;
-            os.HorizontalSpace = horizontalSpace ?? os.HorizontalSpace;
-            os.FocusedItem = focusedItem ?? os.FocusedItem;
-            os.Value = value ?? os.Value;
-            os.Values = values ?? os.Values;
-        }
-    );
+    ) =>
+        Add(
+            out optionSelectorOut,
+            child: new(),
+            configureBeforeAdd: os =>
+            {
+                os.Text = text ?? os.Text;
+                os.Orientation = orientation ?? os.Orientation;
+                os.Styles = styles ?? os.Styles;
+                os.DoubleClickAccepts = doubleClickAccepts ?? os.DoubleClickAccepts;
+                os.Labels = labels ?? os.Labels;
+                os.HorizontalSpace = horizontalSpace ?? os.HorizontalSpace;
+                os.FocusedItem = focusedItem ?? os.FocusedItem;
+                os.Value = value ?? os.Value;
+                os.Values = values ?? os.Values;
+            }
+        );
 
     /// <summary>
     ///     Adds an <see cref="OptionSelector{TEnum}" /> to the parent view.
     /// </summary>
     /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="OptionSelector{TEnum}" /> instance</returns>
-    public ViewBuilder<TParent> AddOptionSelector<TEnum>(OptionSelector<TEnum> optionSelector) where TEnum : struct, Enum
-        => Add(out _, optionSelector);
+    public ViewBuilder<TParent> AddOptionSelector<TEnum>(OptionSelector<TEnum> optionSelector) where TEnum : struct, Enum => Add(out OptionSelector<TEnum> _, optionSelector);
 
     /// <inheritdoc cref="AddOptionSelector{TEnum}(OptionSelector{TEnum})" path="/summary" />
     /// <param name="optionSelectorOut">
@@ -2223,18 +2368,20 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         bool? doubleClickAccepts = null,
         int? horizontalSpace = null,
         TEnum? value = null
-    ) where TEnum : struct, Enum => Add(
-        out optionSelectorOut,
-        new(),
-        os => {
-            os.Text = text ?? os.Text;
-            os.Orientation = orientation ?? os.Orientation;
-            os.Styles = styles ?? os.Styles;
-            os.DoubleClickAccepts = doubleClickAccepts ?? os.DoubleClickAccepts;
-            os.HorizontalSpace = horizontalSpace ?? os.HorizontalSpace;
-            os.Value = value ?? os.Value;
-        }
-    );
+    ) where TEnum : struct, Enum =>
+        Add(
+            out optionSelectorOut,
+            child: new(),
+            configureBeforeAdd: os =>
+            {
+                os.Text = text ?? os.Text;
+                os.Orientation = orientation ?? os.Orientation;
+                os.Styles = styles ?? os.Styles;
+                os.DoubleClickAccepts = doubleClickAccepts ?? os.DoubleClickAccepts;
+                os.HorizontalSpace = horizontalSpace ?? os.HorizontalSpace;
+                os.Value = value ?? os.Value;
+            }
+        );
 
     #endregion
 
@@ -2244,7 +2391,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     Adds a <see cref="FlagSelector" /> to the parent view.
     /// </summary>
     /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="FlagSelector" /> instance</returns>
-    public ViewBuilder<TParent> AddFlagSelector(FlagSelector flagSelector) => Add(out _, flagSelector);
+    public ViewBuilder<TParent> AddFlagSelector(FlagSelector flagSelector) => Add(out FlagSelector _, flagSelector);
 
     /// <inheritdoc cref="AddFlagSelector(FlagSelector)" path="/summary" />
     /// <param name="flagSelectorOut">
@@ -2257,17 +2404,17 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     public ViewBuilder<TParent> AddFlagSelector(
         out FlagSelector flagSelectorOut,
         int? value = null
-    ) => Add(
-        out flagSelectorOut,
-        new(),
-        fs => fs.Value = value ?? fs.Value);
+    ) =>
+        Add(
+            out flagSelectorOut,
+            child: new(),
+            configureBeforeAdd: fs => fs.Value = value ?? fs.Value);
 
     /// <summary>
     ///     Adds a <see cref="FlagSelector{TFlagsEnum}" /> to the parent view.
     /// </summary>
     /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="FlagSelector{TFlagsEnum}" /> instance</returns>
-    public ViewBuilder<TParent> AddFlagSelector<TFlagsEnum>(FlagSelector<TFlagsEnum> flagSelector) where TFlagsEnum : struct, Enum
-        => Add(out _, flagSelector);
+    public ViewBuilder<TParent> AddFlagSelector<TFlagsEnum>(FlagSelector<TFlagsEnum> flagSelector) where TFlagsEnum : struct, Enum => Add(out FlagSelector<TFlagsEnum> _, flagSelector);
 
     /// <inheritdoc cref="AddFlagSelector{TFlagsEnum}(FlagSelector{TFlagsEnum})" path="/summary" />
     /// <param name="flagSelectorOut">
@@ -2280,10 +2427,11 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     public ViewBuilder<TParent> AddFlagSelector<TFlagsEnum>(
         out FlagSelector<TFlagsEnum> flagSelectorOut,
         TFlagsEnum? value = null
-    ) where TFlagsEnum : struct, Enum => Add(
-        out flagSelectorOut,
-        new(),
-        fs => fs.Value = value ?? fs.Value);
+    ) where TFlagsEnum : struct, Enum =>
+        Add(
+            out flagSelectorOut,
+            child: new(),
+            configureBeforeAdd: fs => fs.Value = value ?? fs.Value);
 
     #endregion
 
@@ -2293,7 +2441,7 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
     ///     Adds a <see cref="ColorPicker" /> to the parent view.
     /// </summary>
     /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="ColorPicker" /> instance</returns>
-    public ViewBuilder<TParent> AddColorPicker(ColorPicker colorPicker) => Add(out _, colorPicker);
+    public ViewBuilder<TParent> AddColorPicker(ColorPicker colorPicker) => Add(out ColorPicker _, colorPicker);
 
     /// <inheritdoc cref="AddColorPicker(ColorPicker)" path="/summary" />
     /// <param name="colorPickerOut">
@@ -2314,25 +2462,27 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         Color? selectedColor = null,
         ColorPickerStyle? style = null,
         string? text = null
-    ) => Add(
-        out colorPickerOut,
-        new(),
-        cp => {
-            if (selectedColor is { })
+    ) =>
+        Add(
+            out colorPickerOut,
+            child: new(),
+            configureBeforeAdd: cp =>
             {
-                cp.SelectedColor = selectedColor.Value;
-            }
+                if (selectedColor is not null)
+                {
+                    cp.SelectedColor = selectedColor.Value;
+                }
 
-            cp.Style = style ?? cp.Style;
-            cp.Text = text ?? cp.Text;
-        }
-    );
+                cp.Style = style ?? cp.Style;
+                cp.Text = text ?? cp.Text;
+            }
+        );
 
     /// <summary>
     ///     Adds a <see cref="ColorPicker16" /> to the parent view.
     /// </summary>
     /// <returns>The <see cref="ViewBuilder{TParent}" /> with The newly added <see cref="ColorPicker16" /> instance</returns>
-    public ViewBuilder<TParent> AddColorPicker16(ColorPicker16 colorPicker16) => Add(out _, colorPicker16);
+    public ViewBuilder<TParent> AddColorPicker16(ColorPicker16 colorPicker16) => Add(out ColorPicker16 _, colorPicker16);
 
     /// <inheritdoc cref="AddColorPicker16(ColorPicker16)" path="/summary" />
     /// <param name="colorPicker16Out">
@@ -2353,15 +2503,17 @@ public class ViewBuilder<TParent>(TParent parent) where TParent : View
         ColorName16? selectedColor = null,
         int? boxWidth = null,
         int? boxHeight = null
-    ) => Add(
-        out colorPicker16Out,
-        new(),
-        cp16 => {
-            cp16.SelectedColor = selectedColor ?? cp16.SelectedColor;
-            cp16.BoxWidth = boxWidth ?? cp16.BoxWidth;
-            cp16.BoxHeight = boxHeight ?? cp16.BoxHeight;
-        }
-    );
+    ) =>
+        Add(
+            out colorPicker16Out,
+            child: new(),
+            configureBeforeAdd: cp16 =>
+            {
+                cp16.SelectedColor = selectedColor ?? cp16.SelectedColor;
+                cp16.BoxWidth = boxWidth ?? cp16.BoxWidth;
+                cp16.BoxHeight = boxHeight ?? cp16.BoxHeight;
+            }
+        );
 
     #endregion
 }
