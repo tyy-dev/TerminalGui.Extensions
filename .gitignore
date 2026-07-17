@@ -1,0 +1,10 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/bin/Debug/net10.0
+/obj
+/REFACTOR_SUMMARY.md
+/TABS_BUILDER.md
+/TABS_BUILDER_UPDATE.md
